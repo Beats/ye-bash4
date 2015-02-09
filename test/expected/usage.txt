@@ -1,0 +1,38 @@
+Usage: tester
+Options:
+  -r, --required
+      Set a value to a parameter that requires a value
+
+  -o, --optional
+      Set a value to a parameter that has a default value
+
+  -v, --verbose
+      Explain what is being done
+
+  --debug
+      Display debugging information
+
+  -f, --flag-no
+      Turn a flag off (by default is on)
+
+  -n, --flag-on
+      Turn a flag on (by default is off)
+
+  --version
+      Display the script version
+
+  -h, --help
+      Display this usage text
+
+  -a, --action1
+      Action1 to be performed
+
+  -b, --action2
+      Action2 to be performed
+
+  -c
+      Action3 to be performed
+
+  --action4
+      Action4 to be performed
+

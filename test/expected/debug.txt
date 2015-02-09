@@ -1,0 +1,12 @@
+tester: 0.1
+Beats Ye-Bash4: 0.1
+Action: usage
+Flags:
+  F_VERBOSE:0
+  F_DEBUG:1
+  F_ON:1
+  F_NO:0
+Required:
+  P_REQUIRED:
+Optional:
+  P_OPTIONAL:The default value

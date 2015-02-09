@@ -1,0 +1,42 @@
+#!/bin/bash
+# Ye-Bash4 Framework test script
+
+# Beats Ye-Bash4 Framework
+source "${0%/*}/../ye-bash4.sh"
+
+# Script version
+VERSION="0.1"
+
+ye_bash4_register_f "F_ON" "-f" "--flag-no" "Turn a flag off (by default is on)"
+F_ON=1
+
+ye_bash4_register_f "F_NO" "-n" "--flag-on" "Turn a flag on (by default is off)"
+F_NO=0
+
+ye_bash4_register_o "P_OPTIONAL" "-o" "--optional" "Set a value to a parameter that has a default value"
+P_OPTIONAL="The default value"
+
+ye_bash4_register_r "P_REQUIRED" "-r" "--required" "Set a value to a parameter that requires a value"
+P_REQUIRED=
+
+ye_bash4_register_a "action1" "-a" "--action1" "Action1 to be performed"
+action1() {
+  echo "Performing action1"
+}
+
+ye_bash4_register_a "action2" "-b" "--action2" "Action2 to be performed"
+action2() {
+  echo "Performing action2"
+}
+
+ye_bash4_register_a "action3" "-c" "Action3 to be performed"
+action3() {
+  echo "Performing action3"
+}
+
+ye_bash4_register_a "action4" "--action4" "Action4 to be performed"
+action4() {
+  echo "Performing action4"
+}
+
+ye_bash4_run "$@"
