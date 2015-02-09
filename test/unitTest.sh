@@ -14,6 +14,12 @@ function run() {
   $SCRIPT_PATH $@
 }
 
+function var() {
+  local __var="$1"
+  shift;
+  $SCRIPT_PATH --debug "$1" "$2" | grep $__var | xargs
+}
+
 function testVersion() {
   expected="$SCRIPT_HOME/expected/version.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
@@ -23,7 +29,6 @@ function testVersion() {
 }
 
 function testUsage() {
-#  expected="$SCRIPT_HOME/expected/usage.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
   run                       > $actual
@@ -108,61 +113,97 @@ function testDebug() {
 }
 
 function testFlagON() {
-  actual=`run --debug             | grep F_ON | xargs`
-  assertEquals "Implicit differs"         "F_ON:1" "$actual"
+  local __var="F_ON"
 
-  actual=`run --debug -f          | grep F_ON | xargs`
-  assertEquals "Explicit short differs"   "F_ON:0" "$actual"
+  actual=`var $__var`
+  assertEquals "Implicit differs"         "$__var:1" "$actual"
 
-  actual=`run --debug --flag-no   | grep F_ON | xargs`
-  assertEquals "Explicit long  differs"   "F_ON:0" "$actual"
+  actual=`var $__var -f`
+  assertEquals "Explicit short differs"   "$__var:0" "$actual"
+
+  actual=`var $__var --flag-no`
+  assertEquals "Explicit long  differs"   "$__var:0" "$actual"
 }
 
 function testFlagNO() {
-  actual=`run --debug             | grep F_NO | xargs`
-  assertEquals "Implicit differs"          "F_NO:0" "$actual"
+  local __var="F_NO"
 
-  actual=`run --debug -n          | grep F_NO | xargs`
-  assertEquals "Explicit short differs"   "F_NO:1" "$actual"
+  actual=`var $__var`
+  assertEquals "Implicit differs"         "$__var:0" "$actual"
 
-  actual=`run --debug --flag-on   | grep F_NO | xargs`
-  assertEquals "Explicit long  differs"   "F_NO:1" "$actual"
+  actual=`var $__var -n`
+  assertEquals "Explicit short differs"   "$__var:1" "$actual"
+
+  actual=`var $__var --flag-on`
+  assertEquals "Explicit long  differs"   "$__var:1" "$actual"
 }
 
-function testParameterOptional() {
-  actual=`run --debug                             | grep P_OPTIONAL | xargs`
-  assertEquals "Implicit differs"         "P_OPTIONAL:The default value"  "$actual"
+function testParameterDefault() {
+  local __var="P_DEFAULT"
 
-  actual=`run --debug -o                    | grep P_OPTIONAL | xargs`
-  assertEquals "Explicit none differs"    "P_OPTIONAL:The default value"  "$actual"
+  actual=`var $__var`
+  assertEquals "Implicit differs"         "$__var:Default value" "$actual"
 
-  actual=`run --debug --optional            | grep P_OPTIONAL | xargs`
-  assertEquals "Implicit none differs"    "P_OPTIONAL:The default value"  "$actual"
+  actual=`var $__var -dCustom`
+  assertEquals "Explicit short 1 differs"   "$__var:Custom" "$actual"
 
-  actual=`run --debug -oCustom              | grep P_OPTIONAL | xargs`
-  assertEquals "Explicit short differs"   "P_OPTIONAL:Custom"   "$actual"
+  actual=`var $__var -d"Custom"`
+  assertEquals "Explicit short 2 differs"   "$__var:Custom" "$actual"
 
-  actual=`run --debug --optional="Custom"   | grep P_OPTIONAL | xargs`
-  assertEquals "Explicit long  differs"   "P_OPTIONAL:Custom"   "$actual"
+  actual=`var $__var -d "Custom value"`
+  assertEquals "Explicit short 3 differs"   "$__var:Custom value" "$actual"
+
+  actual=`var $__var --default=Custom`
+  assertEquals "Explicit long 1 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --default="Custom"`
+  assertEquals "Explicit long 2 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --default="Custom value"`
+  assertEquals "Explicit long 3 differs"   "$__var:Custom value" "$actual"
+
+  actual=`var $__var --default Custom`
+  assertEquals "Explicit long 4 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --default "Custom"`
+  assertEquals "Explicit long 5 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --default "Custom value"`
+  assertEquals "Explicit long 6 differs"   "$__var:Custom value" "$actual"
 }
 
-function testParameterRequired() {
-  actual=`run --debug                       | grep P_REQUIRED | xargs`
-  assertEquals "Implicit differs"         "P_REQUIRED:"         "$actual"
+function testParameterMising() {
+  local __var="P_MISSING"
 
-  actual=`run --debug -rCustom              | grep P_REQUIRED | xargs`
-  assertEquals "Explicit short differs"   "P_REQUIRED:Custom"   "$actual"
+  actual=`var $__var`
+  assertEquals "Implicit differs"         "$__var:" "$actual"
 
-  actual=`run --debug --required="Custom"   | grep P_REQUIRED | xargs`
-  assertEquals "Explicit long  differs"   "P_REQUIRED:Custom"   "$actual"
+  actual=`var $__var -mCustom`
+  assertEquals "Explicit short 1 differs"   "$__var:Custom" "$actual"
 
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  actual=`var $__var -m"Custom"`
+  assertEquals "Explicit short 2 differs"   "$__var:Custom" "$actual"
 
-  run --debug -r            > $actual
-  assertDiff "Explicit short output differs." $usage $actual
+  actual=`var $__var -m "Custom value"`
+  assertEquals "Explicit short 3 differs"   "$__var:Custom value" "$actual"
 
-  run --debug --required    > $actual
-  assertDiff "Explicit long output differs." $usage $actual
+  actual=`var $__var --missing=Custom`
+  assertEquals "Explicit long 1 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --missing="Custom"`
+  assertEquals "Explicit long 2 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --missing="Custom value"`
+  assertEquals "Explicit long 3 differs"   "$__var:Custom value" "$actual"
+
+  actual=`var $__var --missing Custom`
+  assertEquals "Explicit long 4 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --missing "Custom"`
+  assertEquals "Explicit long 5 differs"   "$__var:Custom" "$actual"
+
+  actual=`var $__var --missing "Custom value"`
+  assertEquals "Explicit long 6 differs"   "$__var:Custom value" "$actual"
 }
 
 . shunit2

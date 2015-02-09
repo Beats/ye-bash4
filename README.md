@@ -17,7 +17,6 @@ and include it in your script:
 
 # Beats Ye-Bash4 Framework
 source "./ye-bash4.sh"
-
 ```
 Once that is done you can go on and write your script
 
@@ -30,22 +29,20 @@ Every option can have a value associated with which is a way the user can pass v
 Here are some examples of passing values to a script:
 
 ```bash
-
-./run-me -ssimple
-./run-me -b"Complex value with spaces"
-./run-me --long="Simple"
-./run-me --very-long="This is veeery long value"
-
+./run-me -aSimple
+./run-me -c "Simple"
+./run-me -b"Complex value"
+./run-me -d "Complex value"
+./run-me --long-a "Simple"
+./run-me --long-b "Complex value"
+./run-me --long-c="Simple"
+./run-me --long-d="Complex value"
 ```
 
 The **Ye-Bash4** framework differentiates 4 types of components every script can handle:
-
 - Actions
 - Flags
 - Parameters
-    - Required
-    - Optional
-
 
 ### Actions
 
@@ -57,9 +54,8 @@ all you have to do is register it as an action
 function my_action() {
 # here goes your code
 }
-ye_bash4_register_a "my_action" "-a" "--my-action" "This is the description of what this action does"
+ye_bash4_register_A "my_action" "-a" "--my-action" "This is the description of what this action does"
 ```
-
 
 ### Flags
 
@@ -68,31 +64,18 @@ To register a **flag** simply define and call the following function
 
 ```bash
 F_FLAG=1
-ye_bash4_register_f "F_FLAG" "-f" "--flag" "This is the description of the flag"
+ye_bash4_register_F "F_FLAG" "-f" "--flag" "This is the description of the flag"
 ```
 Being a boolean value the flag value is inverted by calling the appropriate option, so mind your flag initialization
 
 ### Parameters
 
 A parameter is a variable that can be changed by the user, using the associated option with a value.
-There are two types of parameters **required** and **optional**
+To register a parameters simply call
 
-#### Required parameters
-
-**Required parameters** must be associated with a value or the script invocation will fail
-To register a required parameters simply call
 ```bash
-P_REQUIRED=
-ye_bash4_register_r "P_REQUIRED" "-r" "--required" "This is the description of the parameter"
-```
-
-#### Optional parameters
-
-**Optional parameters** have a default value set and may be omitted
-To register an optional parameters simply call
-```bash
-P_OPTIONAL=
-ye_bash4_register_o "P_OPTIONAL" "-o" "--optional" "This is the description of the parameter"
+P_DEFAULT=
+ye_bash4_register_P "P_PARAMETER" "-p" "--parameter" "This is the description of the parameter"
 ```
 
 ### Summary
@@ -102,8 +85,7 @@ where **X** is either an:
 
 * A - Action
 * F - Flag
-* R - Required Parameter
-* O - Optional Parameter
+* P - Parameter
 
 The first parameter is required and it must match the component name.
 For an action it must be the same as the action function and for all others it must be the same as the variable name where the value is stored

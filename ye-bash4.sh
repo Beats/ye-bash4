@@ -17,8 +17,7 @@ VERSION=
 ##
 declare -r YE_BASH4_TYPE_A=-1
 declare -r YE_BASH4_TYPE_F=0
-declare -r YE_BASH4_TYPE_R=1
-declare -r YE_BASH4_TYPE_O=2
+declare -r YE_BASH4_TYPE_P=1
 
 ##
 # Parameters
@@ -32,7 +31,6 @@ declare -A YE_BASH4_PARAMETER_TYPE
 declare -a YE_BASH4_COMPONENT_A
 declare -a YE_BASH4_COMPONENT_F
 declare -a YE_BASH4_COMPONENT_R
-declare -a YE_BASH4_COMPONENT_O
 
 YE_BASH4_ACTION=
 
@@ -48,7 +46,7 @@ ye_bash4_is_function() {
   return $((1 -$?))
 }
 
-ye_bash4_register_a() {
+ye_bash4_register_A() {
   local __name="$1"
   local __optS=""
   local __optL=""
@@ -65,7 +63,7 @@ ye_bash4_register_a() {
   ye_bash4_register "$YE_BASH4_TYPE_A" "$__name" "$__optS" "$__optL" "$__text"
 }
 
-ye_bash4_register_f() {
+ye_bash4_register_F() {
   local __name="$1"
   local __optS=""
   local __optL=""
@@ -82,7 +80,7 @@ ye_bash4_register_f() {
   ye_bash4_register "$YE_BASH4_TYPE_F" "$__name" "$__optS" "$__optL" "$__text"
 }
 
-ye_bash4_register_r() {
+ye_bash4_register_P() {
   local __name="$1"
   local __optS=""
   local __optL=""
@@ -96,24 +94,7 @@ ye_bash4_register_r() {
     esac
   done
 
-  ye_bash4_register "$YE_BASH4_TYPE_R" "$__name" "$__optS" "$__optL" "$__text"
-}
-
-ye_bash4_register_o() {
-  local __name="$1"
-  local __optS=""
-  local __optL=""
-  local __text=""
-  shift;
-  for arg in "$@"; do
-    case "$arg" in
-      --*) __optL="$arg";;
-      -*) __optS="$arg";;
-      *) __text="$arg";;
-    esac
-  done
-
-  ye_bash4_register "$YE_BASH4_TYPE_O" "$__name" "$__optS" "$__optL" "$__text"
+  ye_bash4_register "$YE_BASH4_TYPE_P" "$__name" "$__optS" "$__optL" "$__text"
 }
 
 ye_bash4_register() {
@@ -159,11 +140,8 @@ ye_bash4_register() {
     "$YE_BASH4_TYPE_F")
       YE_BASH4_COMPONENT_F+=($__name)
     ;;
-    "$YE_BASH4_TYPE_R")
+    "$YE_BASH4_TYPE_P")
       YE_BASH4_COMPONENT_R+=($__name)
-    ;;
-    "$YE_BASH4_TYPE_O")
-      YE_BASH4_COMPONENT_O+=($__name)
     ;;
   esac
 
@@ -204,9 +182,6 @@ if [ $? -eq 0 ]; then
     for __name in "${YE_BASH4_COMPONENT_R[@]}"; do
       echo "${YE_BASH4_OPTION_USAGE[$__name]}"
     done
-    for __name in "${YE_BASH4_COMPONENT_O[@]}"; do
-      echo "${YE_BASH4_OPTION_USAGE[$__name]}"
-    done
     for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
       echo "${YE_BASH4_OPTION_USAGE[$__name]}"
     done
@@ -227,12 +202,8 @@ if [ $? -eq 0 ]; then
     for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
       echo -n "  $__name:"; eval echo \$$__name
     done
-    echo "Required:"
+    echo "Parameters:"
     for __name in "${YE_BASH4_COMPONENT_R[@]}"; do
-      echo -n "  $__name:"; eval echo \$$__name
-    done
-    echo "Optional:"
-    for __name in "${YE_BASH4_COMPONENT_O[@]}"; do
       echo -n "  $__name:"; eval echo \$$__name
     done
     if [ $F_VERBOSE -ne 0 ]; then
@@ -290,13 +261,9 @@ ye_bash4_run() {
           __handler="ye_bash4_flag"
           __modifier=""
         ;;
-        "$YE_BASH4_TYPE_R")
+        "$YE_BASH4_TYPE_P")
           __handler="ye_bash4_parameter"
           __modifier=":"
-        ;;
-        "$YE_BASH4_TYPE_O")
-          __handler="ye_bash4_parameter"
-          __modifier="::"
         ;;
       esac
 
@@ -337,9 +304,9 @@ ye_bash4_run() {
   }
 
   ye_bash4_parameter() {
-    local __param=$1
+    local __name=$1
     if [ ! -z "$2" ]; then
-      eval "$__param=\"$2\""
+      eval "$__name=\"$2\""
     fi
     return 2
   }

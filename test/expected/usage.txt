@@ -1,10 +1,10 @@
 Usage: tester
 Options:
-  -r, --required
-      Set a value to a parameter that requires a value
+  -d, --default
+      Set a parameter that has a default value
 
-  -o, --optional
-      Set a value to a parameter that has a default value
+  -m, --missing
+      Set a parameter that doesn't have a value
 
   -v, --verbose
       Explain what is being done
