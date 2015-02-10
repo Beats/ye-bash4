@@ -5,10 +5,12 @@
 
 [ ${BASH_VERSINFO[0]} -lt 4 ] && >&2 echo "Requires Bash v4" && exit 2
 
+[ "$0" = "$BASH_SOURCE" ]
+YE_BASH4_BUILDER=$?
 
 YE_BASH4_SCRIPT_FILE=$(cd `dirname "$0"` && pwd)/`basename "$0"`
-YE_BASH4_SCRIPT_NAME=${0##*/}
-YE_BASH4_SCRIPT_HOME=${0%/*}
+YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}
+YE_BASH4_SCRIPT_HOME=${YE_BASH4_SCRIPT_FILE%/*}
 YE_BASH4_SCRIPT_VERSION="0.1"
 
 ##
@@ -23,8 +25,6 @@ declare -r YE_BASH4_TYPE_P=2
 ##
 # Parameters
 ##
-declare -a YE_BASH4_ARGS
-
 declare -A YE_BASH4_OPTIONS
 declare -A YE_BASH4_OPTION_USAGE
 
@@ -35,6 +35,7 @@ declare -a YE_BASH4_COMPONENT_C
 declare -a YE_BASH4_COMPONENT_F
 declare -a YE_BASH4_COMPONENT_P
 
+declare -a YE_BASH4_ARGS
 YE_BASH4_COMMAND=
 
 ##
@@ -224,10 +225,9 @@ ye_bash4_collect_garbage() {
 }
 
 ##
-# Default execution loop
+# Parses the registered components
 ##
-ye_bash4_run() {
-
+ye_bash4_parser() {
   unset -f ye_bash4_normalize_options ye_bash4_is_function ye_bash4_format_usage
   unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
 
@@ -298,20 +298,24 @@ ye_bash4_run() {
     unset -v YE_BASH4_PARAMETER YE_BASH4_PARAMETER_TYPE
   }
 
-  local YE_BASH4_GETOPTS
   local YE_BASH4_OPTS_L=()
   local YE_BASH4_OPTS_S=()
+
   ye_bash4_option_parser
 
-  YE_BASH4_GETOPTS=`getopt -o "$YE_BASH4_OPTS_S" -l "$YE_BASH4_OPTS_L" -n "$YE_BASH4_SCRIPT_NAME" -- "$@"`
-  if [ $? -ne 0 ]; then
-    ye_bash4_usage
-    return 0
-  fi
-  eval set -- "$YE_BASH4_GETOPTS"
+  YE_BASH4_GETOPT="getopt -o "$YE_BASH4_OPTS_S" -l "$YE_BASH4_OPTS_L" -n "$YE_BASH4_SCRIPT_NAME" --"
 
   unset -f ye_bash4_option_parser
-  unset -v YE_BASH4_GETOPTS YE_BASH4_OPTS_L YE_BASH4_OPTS_S
+  unset -v YE_BASH4_OPTS_L YE_BASH4_OPTS_S
+
+}
+
+##
+# Processes the scipt input
+##
+ye_bash4_processor() {
+  eval set -- "$YE_BASH4_GETOPT"
+  unset -v YE_BASH4_GETOPT
 
   ye_bash4_action() {
     if [ -z "$YE_BASH4_COMMAND" ]; then
@@ -378,19 +382,110 @@ ye_bash4_run() {
   if [ -z "$YE_BASH4_COMMAND" ]; then
     YE_BASH4_COMMAND="ye_bash4_usage"
   fi
+}
+
+ye_bash4_runner() {
+
+  YE_BASH4_GETOPT=`$YE_BASH4_GETOPT "$@"`
+  if [ $? -ne 0 ]; then
+    ye_bash4_usage
+    exit 1
+  fi
+
+  ye_bash4_processor
+  unset -f ye_bash4_processor
 
   if [ $YE_BASH4_DEBUG -ne 0 ]; then
     ye_bash4_debug
   else
     $YE_BASH4_COMMAND
   fi
+
   unset -f ye_bash4_usage ye_bash4_debug ye_bash4_version
   unset -v YE_BASH4_OPTION_USAGE
   unset -v YE_BASH4_COMMAND YE_BASH4_ARGS YE_BASH4_DEBUG YE_BASH4_VERBOSE
   unset -v YE_BASH4_SCRIPT_FILE YE_BASH4_SCRIPT_NAME YE_BASH4_SCRIPT_HOME YE_BASH4_SCRIPT_VERSION
+}
+
+##
+# Default execution loop
+##
+ye_bash4_run() {
+
+  local YE_BASH4_GETOPT
+  ye_bash4_parser
+  unset -f ye_bash4_parser
+
+  ye_bash4_runner "$@"
 
   ye_bash4_collect_garbage
   unset -f ye_bash4_collect_garbage ye_bash4_run
   unset -v YE_BASH4_COMPONENT_C YE_BASH4_COMPONENT_F YE_BASH4_COMPONENT_P
 }
 
+if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+  ye_bash4_make() {
+    local __source="$1"
+    local __target="$2"
+    echo "Building script from $__source into $__target"
+
+    cp $__source $__target
+
+    source $__source
+
+    YE_BASH4_SCRIPT_FILE=$__target
+    YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}
+    YE_BASH4_SCRIPT_HOME=${YE_BASH4_SCRIPT_FILE%/*}
+
+    local YE_BASH4_GETOPT
+    ye_bash4_parser
+
+    sed -i '/ye_bash4_register.*/d' $__target
+
+    echo >> $__target
+    set | grep ^YE_BASH4_VERSION >> $__target
+    echo >> $__target
+
+    echo 'YE_BASH4_SCRIPT_FILE=$(cd `dirname "$0"` && pwd)/`basename "$0"`' >> $__target
+    echo 'YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}' >> $__target
+    echo 'YE_BASH4_SCRIPT_HOME=${YE_BASH4_SCRIPT_FILE%/*}' >> $__target
+    set | grep ^YE_BASH4_SCRIPT_VERSION >> $__target
+    echo >> $__target
+
+    set | grep ^YE_BASH4_GETOPT >> $__target
+    echo "declare -A YE_BASH4_OPTIONS" >> $__target
+    echo "declare -A YE_BASH4_OPTION_USAGE" >> $__target
+    set | grep ^YE_BASH4_OPTIONS >> $__target
+    set | grep -Pzo "(?s)^(\s*)YE_BASH4_OPTION_USAGE=\(.*?\" \)$" >> $__target
+    echo >> $__target
+
+    echo "declare -A YE_BASH4_COMPONENT_C" >> $__target
+    echo "declare -A YE_BASH4_COMPONENT_F" >> $__target
+    echo "declare -A YE_BASH4_COMPONENT_P" >> $__target
+    set | grep ^YE_BASH4_COMPONENT_C >> $__target
+    set | grep ^YE_BASH4_COMPONENT_F >> $__target
+    set | grep ^YE_BASH4_COMPONENT_P >> $__target
+    echo >> $__target
+
+    echo "declare -a YE_BASH4_ARGS" >> $__target
+    echo "YE_BASH4_COMMAND=" >> $__target
+    echo "YE_BASH4_VERBOSE=0" >> $__target
+    echo "YE_BASH4_DEBUG=0" >> $__target
+    echo >> $__target
+
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_usage *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_debug *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_version *\(\).*?{.*?^\1}" >> $__target
+    echo >> $__target
+
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_processor *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_runner *\(\).*?{.*?^\1}" >> $__target
+    echo >> $__target
+
+    echo 'ye_bash4_runner "$@"' >> $__target
+
+  }
+
+  ye_bash4_make "$@"
+
+fi

@@ -1,4 +1,4 @@
-Usage: tester
+Usage: interpreter
 Options:
   -d, --default
       Set a parameter that has a default value

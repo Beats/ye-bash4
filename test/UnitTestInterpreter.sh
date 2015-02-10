@@ -1,14 +1,17 @@
 #!/bin/bash
 
+SCRIPT_NAME="interpreter"
 SCRIPT_HOME=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
-SCRIPT_NAME="tester"
 SCRIPT_PATH="$SCRIPT_HOME/$SCRIPT_NAME"
-
-mkdir -p $SCRIPT_HOME/actual
 
 source "$SCRIPT_HOME/asserts.sh"
 
-usage="$SCRIPT_HOME/expected/usage.txt"
+EXPECTED="$SCRIPT_HOME/expected/$SCRIPT_NAME"
+ACTUAL="$SCRIPT_HOME/actual/$SCRIPT_NAME"
+
+mkdir -p $ACTUAL
+
+usage="$EXPECTED/usage.txt"
 
 function run() {
   $SCRIPT_PATH "$@"
@@ -21,15 +24,15 @@ function var() {
 }
 
 function testVersion() {
-  expected="$SCRIPT_HOME/expected/version.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/version.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run --version             > $actual
   assertDiff "Explicit output differs." $expected $actual
 }
 
 function testUsage() {
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run                       > $actual
   assertDiff "Implicit       output differs." $usage $actual
@@ -39,7 +42,7 @@ function testUsage() {
 
   run --help                > $actual
   assertDiff "Explicit long  output differs." $usage $actual
-  
+
   run -n                    > $actual
   assertDiff "Invalid  short output differs." $usage $actual
 
@@ -48,21 +51,21 @@ function testUsage() {
 
   run -a -b                 > $actual
   assertDiff "Multiple short output differs." $usage $actual
- 
+
   run --action1 --action2   > $actual
   assertDiff "Multiple long  output differs." $usage $actual
-  
+
   run -a --action2          > $actual
   assertDiff "Multiple both  output differs." $usage $actual
-  
+
   run --action1 -b          > $actual
   assertDiff "Multiple both  output differs." $usage $actual
-  
+
 }
 
 function testAction1() {
-  expected="$SCRIPT_HOME/expected/yb4_action1.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/yb4_action1.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run -a            > $actual
   assertDiff "Explicit short output differs." $expected $actual
@@ -72,8 +75,8 @@ function testAction1() {
 }
 
 function testAction2() {
-  expected="$SCRIPT_HOME/expected/yb4_action2.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/yb4_action2.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run -b            > $actual
   assertDiff "Explicit short output differs." $expected $actual
@@ -83,8 +86,8 @@ function testAction2() {
 }
 
 function testAction3() {
-  expected="$SCRIPT_HOME/expected/yb4_action3.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/yb4_action3.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run -c            > $actual
   assertDiff "Explicit short output differs." $expected $actual
@@ -94,8 +97,8 @@ function testAction3() {
 }
 
 function testAction4() {
-  expected="$SCRIPT_HOME/expected/yb4_action4.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/yb4_action4.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run -d            > $actual
   assertDiff "Explicit short output differs." $usage $actual
@@ -105,8 +108,8 @@ function testAction4() {
 }
 
 function testDebug() {
-  expected="$SCRIPT_HOME/expected/debug.txt"
-  actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
+  expected="$EXPECTED/debug.txt"
+  actual="$ACTUAL/$FUNCNAME.txt"
 
   run --debug --action1 Argument1 -m "Missing value" "Argument Two"         > $actual
   assertDiff "Explicit long output differs." $expected $actual

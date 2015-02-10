@@ -1,11 +1,8 @@
 #!/bin/bash
 # Ye-Bash4 Framework test script
 
-# Beats Ye-Bash4 Framework
-source "${0%/*}/../ye-bash4.sh"
-
 # Script version
-YE_BASH4_SCRIPT_VERSION="0.1"
+YE_BASH4_SCRIPT_VERSION="0.3"
 
 ye_bash4_register_F "YB4_ON" "-f" "--flag-no" "Turn a flag off (by default is on)"
 YB4_ON=1
@@ -39,4 +36,8 @@ yb4_action4() {
   echo "Performing action4"
 }
 
-ye_bash4_run "$@"
+ye_bash4_version() {
+  echo "Overridden"
+  echo "$YE_BASH4_SCRIPT_NAME v$YE_BASH4_SCRIPT_VERSION"
+  echo
+}
