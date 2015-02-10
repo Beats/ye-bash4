@@ -1,11 +1,14 @@
 tester: 0.1
 Beats Ye-Bash4: 0.1
-Action: usage
+Command: yb4_action1
 Flags:
-  F_VERBOSE:0
-  F_DEBUG:1
-  F_ON:1
-  F_NO:0
+  YE_BASH4_VERBOSE:0
+  YE_BASH4_DEBUG:1
+  YB4_ON:1
+  YB4_NO:0
 Parameters:
-  P_DEFAULT:Default value
-  P_MISSING:
+  YB4_DEFAULT:Default value
+  YB4_MISSING:Missing value
+Arguments:
+  ARG[0]:Argument1
+  ARG[1]:Argument Two

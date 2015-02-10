@@ -15,8 +15,13 @@ and include it in your script:
 #!/bin/bash
 # The description of your script
 
-# Beats Ye-Bash4 Framework
+# Include the Ye-Bash4 Framework
 source "./ye-bash4.sh"
+
+# CODE HERE
+
+# Start the engine
+ye_bash4_run "$@"
 ```
 Once that is done you can go on and write your script
 
@@ -39,22 +44,23 @@ Here are some examples of passing values to a script:
 ./run-me --long-d="Complex value"
 ```
 
-The **Ye-Bash4** framework differentiates 4 types of components every script can handle:
-- Actions
+The **Ye-Bash4** framework differentiates 4 types of input every script can handle:
+- Commands
 - Flags
 - Parameters
+- Arguments
 
-### Actions
+### Commands
 
-An action is a named functionality your script can perform. It is most commonly viewed as a script function.
-If you want to register a function as an action that can be chosen by the user with a **flag** like option
-all you have to do is register it as an action
+A command is a named functionality your script can perform. It is most commonly viewed as a script function.
+If you want to register a function as a command that can be chosen by the user with a **flag** like option
+all you have to do is register it as a command
 
 ```bash
-function my_action() {
+function my_command() {
 # here goes your code
 }
-ye_bash4_register_A "my_action" "-a" "--my-action" "This is the description of what this action does"
+ye_bash4_register_C "my_command" "-a" "--my-command" "This is the description of what this command does"
 ```
 
 ### Flags
@@ -74,34 +80,52 @@ A parameter is a variable that can be changed by the user, using the associated 
 To register a parameters simply call
 
 ```bash
-P_DEFAULT=
+P_PARAMETER=
 ye_bash4_register_P "P_PARAMETER" "-p" "--parameter" "This is the description of the parameter"
 ```
 
-### Summary
+### Arguments
+
+An arguments is any parameter that was provided by the user to the script that was not associated with an option.
+The only way you can distinguish between arguments is by their position.
+Here are some examples of passing arguments to a script
+
+```bash
+./run-me argument
+./run-me "this is also a single argument"
+./run-me "and these" are "three arguments"
+./run-me --a-flag -o "A parameter" "An argument" -a "Another parameter" "Yet another argument"
+```
+
+You can access all the passed arguments using the ```YE_BASH4_ARGS``` array.
+To access the first argument just call ```"$YE_BASH4_ARGS[0]"```
+
+## Summary
 
 All options have to be registered by making a call to a ```ye_bash4_register_X NAME OPTION [OPTION [DESCRIPTION]]``` function in your script
 where **X** is either an:
 
-* A - Action
+* C - Command
 * F - Flag
 * P - Parameter
 
 The first parameter is required and it must match the component name.
-For an action it must be the same as the action function and for all others it must be the same as the variable name where the value is stored
+For an command it must be the same as the command function and for all others it must be the same as the variable name where the value is stored
 The all other parameters are optional and can be either:
 * an option definition in its short form
 * an option definition in its long form
-* the description of the action
+* the description of the command/parameter/flag
 
-## Extra features
+## Standard features
 
-The framework provides with the following extra actions and flags:
+The framework provides with the following standard components:
 
-* Actions
+* Commands
     * **Version** (--version) displays the current version of the script
+        * override by creating a function called ```ye_bash4_version```
     * **Usage**   (-h|--help)displays the scripts help text
+        * override by creating a function called ```ye_bash4_usage```
 * Flags
-    * **Debug**   (--debug) if set no action will be executed, instead all the script relevant data will be dumped so that the user can d-bug the script
+    * **Debug**   (--debug) if set no command will be executed, instead all the script relevant data will be dumped so that the user can d-bug the script
+        * override by creating a function called ```ye_bash4_debug```
     * **Verbose** (-v|--verbose) a simple flag that can be used for regulating the script output level
-

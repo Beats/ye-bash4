@@ -11,7 +11,7 @@ source "$SCRIPT_HOME/asserts.sh"
 usage="$SCRIPT_HOME/expected/usage.txt"
 
 function run() {
-  $SCRIPT_PATH $@
+  $SCRIPT_PATH "$@"
 }
 
 function var() {
@@ -61,7 +61,7 @@ function testUsage() {
 }
 
 function testAction1() {
-  expected="$SCRIPT_HOME/expected/action1.txt"
+  expected="$SCRIPT_HOME/expected/yb4_action1.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
   run -a            > $actual
@@ -72,7 +72,7 @@ function testAction1() {
 }
 
 function testAction2() {
-  expected="$SCRIPT_HOME/expected/action2.txt"
+  expected="$SCRIPT_HOME/expected/yb4_action2.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
   run -b            > $actual
@@ -83,7 +83,7 @@ function testAction2() {
 }
 
 function testAction3() {
-  expected="$SCRIPT_HOME/expected/action3.txt"
+  expected="$SCRIPT_HOME/expected/yb4_action3.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
   run -c            > $actual
@@ -94,7 +94,7 @@ function testAction3() {
 }
 
 function testAction4() {
-  expected="$SCRIPT_HOME/expected/action4.txt"
+  expected="$SCRIPT_HOME/expected/yb4_action4.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
   run -d            > $actual
@@ -108,12 +108,21 @@ function testDebug() {
   expected="$SCRIPT_HOME/expected/debug.txt"
   actual="$SCRIPT_HOME/actual/$FUNCNAME.txt"
 
-  run --debug > $actual
+  run --debug --action1 Argument1 -m "Missing value" "Argument Two"         > $actual
+  assertDiff "Explicit long output differs." $expected $actual
+
+  run --debug "Argument1" -a "Argument Two" -m"Missing value"               > $actual
+  assertDiff "Explicit long output differs." $expected $actual
+
+  run --debug Argument1 "Argument Two" --action1 --missing="Missing value"  > $actual
+  assertDiff "Explicit long output differs." $expected $actual
+
+  run --debug Argument1 -a --missing "Missing value" "Argument Two"         > $actual
   assertDiff "Explicit long output differs." $expected $actual
 }
 
 function testFlagON() {
-  local __var="F_ON"
+  local __var="YB4_ON"
 
   actual=`var $__var`
   assertEquals "Implicit differs"         "$__var:1" "$actual"
@@ -126,7 +135,7 @@ function testFlagON() {
 }
 
 function testFlagNO() {
-  local __var="F_NO"
+  local __var="YB4_NO"
 
   actual=`var $__var`
   assertEquals "Implicit differs"         "$__var:0" "$actual"
@@ -139,7 +148,7 @@ function testFlagNO() {
 }
 
 function testParameterDefault() {
-  local __var="P_DEFAULT"
+  local __var="YB4_DEFAULT"
 
   actual=`var $__var`
   assertEquals "Implicit differs"         "$__var:Default value" "$actual"
@@ -173,7 +182,7 @@ function testParameterDefault() {
 }
 
 function testParameterMising() {
-  local __var="P_MISSING"
+  local __var="YB4_MISSING"
 
   actual=`var $__var`
   assertEquals "Implicit differs"         "$__var:" "$actual"
