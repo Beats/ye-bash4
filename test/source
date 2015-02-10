@@ -1,6 +1,13 @@
 #!/bin/bash
 # Ye-Bash4 Framework test script
 
+source "${0%/*}/../ye-bash4.sh"
+. "${0%/*}/../ye-bash4.sh"
+source ${0%/*}/../ye-bash4.sh
+. ${0%/*}/../ye-bash4.sh
+source '${0%/*}/../ye-bash4.sh'
+. '${0%/*}/../ye-bash4.sh'
+
 # Script version
 YE_BASH4_SCRIPT_VERSION="0.3"
 
@@ -41,3 +48,5 @@ ye_bash4_version() {
   echo "$YE_BASH4_SCRIPT_NAME v$YE_BASH4_SCRIPT_VERSION"
   echo
 }
+
+ye_bash4_run "$@"

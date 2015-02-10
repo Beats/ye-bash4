@@ -152,7 +152,7 @@ ye_bash4_register $YE_BASH4_TYPE_F "YE_BASH4_DEBUG" "" "--debug" "Display debugg
 YE_BASH4_DEBUG=0
 
 ##
-# Default actions
+# Commands
 ##
 ye_bash4_register $YE_BASH4_TYPE_C "ye_bash4_version" "" "--version" "Display the script version"
 ye_bash4_is_function "ye_bash4_version"
@@ -211,6 +211,9 @@ if [ $? -eq 0 ]; then
   }
 fi
 
+##
+# Engine
+##
 ye_bash4_collect_garbage() {
   local __name
   for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
@@ -424,25 +427,48 @@ ye_bash4_run() {
 }
 
 if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+
+  ye_bash4_is_overridden() {
+    local __command="$2"
+    local __count=`grep -Pc "^(\s*)(function)?(\s*)?$__command\s*(\(\))?\s*{" $1`
+    if [[ $__count -eq 0 ]]; then
+      YE_BASH4_DEFAULT_COMMANDS+=("$__command")
+    fi
+    return $__count
+  }
+
   ye_bash4_make() {
     local __source="$1"
     local __target="$2"
-    echo "Building script from $__source into $__target"
+    echo "Building $__target script from $__source"
 
     cp $__source $__target
 
-    source $__source
+    sed -i '/^\s*ye_bash4_run.*$/d' $__target
+    sed -i '/^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$/d' $__target
+#    sed -i -r 's/^\s*source\s*\(["\']?\)ye-bash4\.sh\1$//g' $__target
+
+    source $__target
 
     YE_BASH4_SCRIPT_FILE=$__target
-    YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}
-    YE_BASH4_SCRIPT_HOME=${YE_BASH4_SCRIPT_FILE%/*}
 
     local YE_BASH4_GETOPT
     ye_bash4_parser
 
-    sed -i '/ye_bash4_register.*/d' $__target
+    sed -i '/^\s*ye_bash4_register.*$/d' $__target
+    sed -i '/^\s*YE_BASH4_SCRIPT_VERSION.*$/d' $__target
+
+    declare -a YE_BASH4_DEFAULT_COMMANDS
+    ye_bash4_is_overridden "$__target" 'ye_bash4_usage'
+    ye_bash4_is_overridden "$__target" 'ye_bash4_debug'
+    ye_bash4_is_overridden "$__target" 'ye_bash4_version'
 
     echo >> $__target
+    echo >> $__target
+    echo "############################" >> $__target
+    echo "# Beats Ye-Bash4 Framework #" >> $__target
+    echo "############################" >> $__target
+
     set | grep ^YE_BASH4_VERSION >> $__target
     echo >> $__target
 
@@ -452,38 +478,63 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     set | grep ^YE_BASH4_SCRIPT_VERSION >> $__target
     echo >> $__target
 
-    set | grep ^YE_BASH4_GETOPT >> $__target
+    echo "##" >> $__target
+    echo "# Parameters" >> $__target
+    echo "##" >> $__target
+
     echo "declare -A YE_BASH4_OPTIONS" >> $__target
     echo "declare -A YE_BASH4_OPTION_USAGE" >> $__target
-    set | grep ^YE_BASH4_OPTIONS >> $__target
-    set | grep -Pzo "(?s)^(\s*)YE_BASH4_OPTION_USAGE=\(.*?\" \)$" >> $__target
     echo >> $__target
 
     echo "declare -A YE_BASH4_COMPONENT_C" >> $__target
     echo "declare -A YE_BASH4_COMPONENT_F" >> $__target
     echo "declare -A YE_BASH4_COMPONENT_P" >> $__target
+    echo >> $__target
+
+    echo "declare -a YE_BASH4_ARGS" >> $__target
+    echo "YE_BASH4_COMMAND=" >> $__target
+    echo >> $__target
+
     set | grep ^YE_BASH4_COMPONENT_C >> $__target
     set | grep ^YE_BASH4_COMPONENT_F >> $__target
     set | grep ^YE_BASH4_COMPONENT_P >> $__target
     echo >> $__target
 
-    echo "declare -a YE_BASH4_ARGS" >> $__target
-    echo "YE_BASH4_COMMAND=" >> $__target
+    echo "##" >> $__target
+    echo "# Flags" >> $__target
+    echo "##" >> $__target
+
     echo "YE_BASH4_VERBOSE=0" >> $__target
     echo "YE_BASH4_DEBUG=0" >> $__target
     echo >> $__target
 
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_usage *\(\).*?{.*?^\1}" >> $__target
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_debug *\(\).*?{.*?^\1}" >> $__target
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_version *\(\).*?{.*?^\1}" >> $__target
+    set | grep ^YE_BASH4_GETOPT >> $__target
+    set | grep ^YE_BASH4_OPTIONS >> $__target
+    set | grep -Pzo "(?s)^(\s*)YE_BASH4_OPTION_USAGE=\(.*?\" \)$" >> $__target
     echo >> $__target
 
+    echo "##" >> $__target
+    echo "# Commands" >> $__target
+    echo "##" >> $__target
+
+    local __name
+    for __name in "${YE_BASH4_DEFAULT_COMMANDS[@]}"; do
+      set | grep -Pzo "(?s)^(\s*)$__name\s*\(\).*?{.*?^\1}" >> $__target
+      echo >> $__target
+    done
+
+    echo "##" >> $__target
+    echo "# Engine" >> $__target
+    echo "##" >> $__target
+
     set | grep -Pzo "(?s)^(\s*)ye_bash4_processor *\(\).*?{.*?^\1}" >> $__target
+    echo >> $__target
     set | grep -Pzo "(?s)^(\s*)ye_bash4_runner *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
 
     echo 'ye_bash4_runner "$@"' >> $__target
 
+    echo "Done"
   }
 
   ye_bash4_make "$@"
