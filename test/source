@@ -1,15 +1,11 @@
 #!/bin/bash
 # Ye-Bash4 Framework test script
 
+# Beats Ye-Bash4 Framework
 source "${0%/*}/../ye-bash4.sh"
-. "${0%/*}/../ye-bash4.sh"
-source ${0%/*}/../ye-bash4.sh
-. ${0%/*}/../ye-bash4.sh
-source '${0%/*}/../ye-bash4.sh'
-. '${0%/*}/../ye-bash4.sh'
 
 # Script version
-YE_BASH4_SCRIPT_VERSION="0.3"
+YE_BASH4_SCRIPT_VERSION="0.2"
 
 ye_bash4_register_F "YB4_ON" "-f" "--flag-no" "Turn a flag off (by default is on)"
 YB4_ON=1

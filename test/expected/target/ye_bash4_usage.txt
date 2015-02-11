@@ -1,4 +1,4 @@
-Usage: builder
+Usage: target
 Options:
   -d, --default
       Set a parameter that has a default value

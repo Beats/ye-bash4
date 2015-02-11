@@ -437,10 +437,68 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     return $__count
   }
 
+  ye_bash4_confirm() {
+    if [ "${2:-0}" -ne 0 ]; then
+      return 0
+    fi
+    read -r -p "${1:-Are you sure?} [y/N] " response
+    case $response in
+        [yY][eE][sS]|[yY])
+            true
+            ;;
+        *)
+            false
+            ;;
+    esac
+  }
+
   ye_bash4_make() {
+    local __switch=
+    local __auto_confirm=0
+    if [[ "$1" == -* ]]; then
+      __switch="$1"
+      shift
+    fi
+    case "$__switch" in
+      -f|-y) __auto_confirm=1 ;;
+    esac
+
     local __source="$1"
     local __target="$2"
-    echo "Building $__target script from $__source"
+
+    if [ ! -f "$__source" ]; then
+      >&2 echo "The source file doesn't exist: $__source"
+      exit 2;
+    fi
+    if [ ! -r "$__source" ]; then
+      >&2 echo "The source file is not readable: $__source"
+      exit 2;
+    fi
+    __source=$(cd `dirname "$__source"` && pwd)/`basename "$__source"`
+    if [ "$YE_BASH4_SCRIPT_FILE" == "$__source" ]; then
+      >&2 echo "Are you really that crazy, trying to build a file from the framework source: $__source"
+      exit 2;
+    fi
+    if [ -f "$__target" ]; then
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+      if [ "$YE_BASH4_SCRIPT_FILE" == "$__target" ]; then
+        >&2 echo "Are you really that crazy, trying to overwrite the framework: $__target"
+        exit 2;
+      fi
+      ye_bash4_confirm "Are your sure you want to overwrite the file: $__target?" $__auto_confirm
+      if [ "$?" -ne 0 ]; then
+        exit 0;
+      fi
+    else
+      touch "$__target" > /dev/null 2>&1
+      if [ "$?" -ne 0 ]; then
+        >&2 echo "The target file can't be created: $__target"
+        exit 2;
+      fi
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+    fi
+
+    echo "Building '$__target' script from '$__source'"
 
     cp $__source $__target
 
