@@ -5,7 +5,7 @@
 
 [ ${BASH_VERSINFO[0]} -lt 4 ] && >&2 echo "Requires Bash v4" && exit 2
 
-[ "$0" = "$BASH_SOURCE" ]
+[ "$0" != "$BASH_SOURCE" ]
 YE_BASH4_BUILDER=$?
 
 YE_BASH4_SCRIPT_FILE=$(cd `dirname "$0"` && pwd)/`basename "$0"`
@@ -141,6 +141,7 @@ ye_bash4_register() {
   YE_BASH4_PARAMETER_TYPE[$__name]=$__type
   YE_BASH4_OPTION_USAGE[$__name]="`ye_bash4_format_usage "$__optS" "$__optL" "$__text"`
 "
+  unset -f ye_bash4_normalize_options
 }
 
 ##
@@ -201,7 +202,7 @@ if [ $? -eq 0 ]; then
     done
     echo "Arguments:"
     for __name in "${YE_BASH4_ARGS[@]}"; do
-      echo "  ARG[$__i]:$__name"; ((__i++));
+      echo "  YE_BASH_ARGS[$__i]:$__name"; ((__i++));
     done
     if [ $YE_BASH4_VERBOSE -ne 0 ]; then
       echo "Script:"
@@ -212,36 +213,22 @@ if [ $? -eq 0 ]; then
   }
 fi
 
-##
-# Engine
-##
-ye_bash4_collect_garbage() {
-  local __name
-  for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
-    unset -v "$__name"
-  done
-  for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
-    unset -v "$__name"
-  done
-  for __name in "${YE_BASH4_COMPONENT_C[@]}"; do
-    unset -f "$__name"
-  done
-}
+###############################
+#  Ye-Bash4 Framework Engine  #
+###############################
 
 ##
-# Parses the registered components
+# Processes the registered components
 ##
-ye_bash4_parser() {
-  unset -f ye_bash4_normalize_options ye_bash4_is_function ye_bash4_format_usage
-  unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
+ye_bash4_registration_processor() {
 
-  ye_bash4_option_parser() {
+  ye_bash4_component_builder() {
 
     ye_bash4_join() {
       local IFS="$1"; shift; echo "$*";
     }
 
-    ye_bash4_option_processor() {
+    ye_bash4_getopt_option_builder() {
       local __component=$1
       local __opts=$2
       local __handler=$3
@@ -264,7 +251,7 @@ ye_bash4_parser() {
       done
     }
 
-    ye_bash4_option_processor_p() {
+    ye_bash4_component_processor() {
       local __component=$1
       local __opts=$2
       local __type=$3
@@ -286,40 +273,38 @@ ye_bash4_parser() {
         ;;
       esac
 
-      ye_bash4_option_processor "$__component" "$__opts" "$__handler" "$__modifier"
+      ye_bash4_getopt_option_builder "$__component" "$__opts" "$__handler" "$__modifier"
     }
 
     local __key=
     for __key in "${!YE_BASH4_PARAMETER[@]}"; do
-      ye_bash4_option_processor_p "$__key" "${YE_BASH4_PARAMETER[$__key]}" "${YE_BASH4_PARAMETER_TYPE[$__key]}"
+      ye_bash4_component_processor "$__key" "${YE_BASH4_PARAMETER[$__key]}" "${YE_BASH4_PARAMETER_TYPE[$__key]}"
     done
 
     YE_BASH4_OPTS_S=`ye_bash4_join "" "${YE_BASH4_OPTS_S[@]}"`
     YE_BASH4_OPTS_L=`ye_bash4_join , "${YE_BASH4_OPTS_L[@]}"`
 
-    unset -f ye_bash4_join ye_bash4_option_processor ye_bash4_option_processor_p
-
+    unset -f ye_bash4_join ye_bash4_getopt_option_builder ye_bash4_component_processor
     unset -v YE_BASH4_PARAMETER YE_BASH4_PARAMETER_TYPE
   }
 
   local YE_BASH4_OPTS_L=()
   local YE_BASH4_OPTS_S=()
 
-  ye_bash4_option_parser
+  ye_bash4_component_builder
 
   YE_BASH4_GETOPT="getopt -o "$YE_BASH4_OPTS_S" -l "$YE_BASH4_OPTS_L" -n "$YE_BASH4_SCRIPT_NAME" --"
 
-  unset -f ye_bash4_option_parser
+  unset -f ye_bash4_component_builder
   unset -v YE_BASH4_OPTS_L YE_BASH4_OPTS_S
 
 }
 
 ##
-# Processes the scipt input
+# Processes the script input
 ##
 ye_bash4_processor() {
   eval set -- "$YE_BASH4_GETOPT"
-  unset -v YE_BASH4_GETOPT
 
   ye_bash4_action() {
     if [ -z "$YE_BASH4_COMMAND" ]; then
@@ -375,7 +360,6 @@ ye_bash4_processor() {
       break
     fi
   done
-  unset -v YE_BASH4_OPTIONS
 
   for __loop do
     YE_BASH4_ARGS+=("$__loop")
@@ -388,7 +372,7 @@ ye_bash4_processor() {
   fi
 }
 
-ye_bash4_runner() {
+ye_bash4_input_parser() {
 
   YE_BASH4_GETOPT=`$YE_BASH4_GETOPT "$@"`
   if [ $? -ne 0 ]; then
@@ -401,33 +385,63 @@ ye_bash4_runner() {
 
   if [ $YE_BASH4_DEBUG -ne 0 ]; then
     ye_bash4_debug
-  else
-    $YE_BASH4_COMMAND
+    exit 0
   fi
-
-  unset -f ye_bash4_usage ye_bash4_debug ye_bash4_version
-  unset -v YE_BASH4_OPTION_USAGE
-  unset -v YE_BASH4_COMMAND YE_BASH4_ARGS YE_BASH4_DEBUG YE_BASH4_VERBOSE
-  unset -v YE_BASH4_SCRIPT_FILE YE_BASH4_SCRIPT_NAME YE_BASH4_SCRIPT_HOME YE_BASH4_SCRIPT_VERSION
 }
 
 ##
 # Default execution loop
 ##
 ye_bash4_run() {
+  if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+    unset -f ye_bash4_is_function ye_bash4_format_usage
+    unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
+  fi
 
   local YE_BASH4_GETOPT
-  ye_bash4_parser
-  unset -f ye_bash4_parser
+  ye_bash4_registration_processor
+  if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+    unset -f ye_bash4_registration_processor
+  fi
 
-  ye_bash4_runner "$@"
+  ye_bash4_input_parser "$@"
+  unset -v YE_BASH4_GETOPT
+
+  if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+    unset -f ye_bash4_input_parser
+    unset -v YE_BASH4_OPTIONS
+  fi
+  unset -f ye_bash4_run
+
+#  set | grep '^YE_BASH4\|^YB4_\|^ye_bash4\|^yb4_'
+  $YE_BASH4_COMMAND
+
+  ye_bash4_collect_garbage() {
+    local __name
+    for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
+      unset -v "$__name"
+    done
+    for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
+      unset -v "$__name"
+    done
+    for __name in "${YE_BASH4_COMPONENT_C[@]}"; do
+      unset -f "$__name"
+    done
+  }
 
   ye_bash4_collect_garbage
-  unset -f ye_bash4_collect_garbage ye_bash4_run
+  unset -f ye_bash4_collect_garbage
+
+  unset -f ye_bash4_usage ye_bash4_debug ye_bash4_version
+  unset -v YE_BASH4_OPTION_USAGE
+
+  unset -v YE_BASH4_COMMAND YE_BASH4_ARGS YE_BASH4_DEBUG YE_BASH4_VERBOSE
+  unset -v YE_BASH4_SCRIPT_FILE YE_BASH4_SCRIPT_NAME YE_BASH4_SCRIPT_HOME YE_BASH4_SCRIPT_VERSION
   unset -v YE_BASH4_COMPONENT_C YE_BASH4_COMPONENT_F YE_BASH4_COMPONENT_P
+
 }
 
-if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
   ye_bash4_is_overridden() {
     local __command="$2"
@@ -475,7 +489,7 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     fi
   }
 
-  ye_bash4_target_restore() {
+  ye_bash4_target_reset() {
     local __target="$1"
     local __source="$2"
 
@@ -490,8 +504,40 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
   }
 
   ye_bash4_target_build() {
-    local __target="$1"
-    local __source="$2"
+    local __target="${YE_BASH4_ARGS[1]}"
+    local __source="${YE_BASH4_ARGS[0]}"
+
+    if [ ! -f "$__source" ]; then
+      >&2 echo "The source file doesn't exist: $__source"
+      exit 2;
+    fi
+    if [ ! -r "$__source" ]; then
+      >&2 echo "The source file is not readable: $__source"
+      exit 2;
+    fi
+    __source=$(cd `dirname "$__source"` && pwd)/`basename "$__source"`
+    if [ "$YE_BASH4_SCRIPT_FILE" == "$__source" ]; then
+      >&2 echo "Are you really that crazy, trying to build a file from the framework source: $__source"
+      exit 2;
+    fi
+    if [ -f "$__target" ]; then
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+      if [ "$YE_BASH4_SCRIPT_FILE" == "$__target" ]; then
+        >&2 echo "Are you really that crazy, trying to overwrite the framework: $__target"
+        exit 2;
+      fi
+      ye_bash4_confirm "Are your sure you want to overwrite the file: $__target?" $YE_BASH4_AUTOCONFIRM
+      if [ "$?" -ne 0 ]; then
+        exit 0;
+      fi
+    else
+      touch "$__target" > /dev/null 2>&1
+      if [ "$?" -ne 0 ]; then
+        >&2 echo "The target file can't be created: $__target"
+        exit 2;
+      fi
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+    fi
 
     echo "Building '$__target' script from '$__source'"
 
@@ -504,7 +550,7 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     YE_BASH4_SCRIPT_FILE=$__target
 
     local YE_BASH4_GETOPT
-    ye_bash4_parser
+    ye_bash4_registration_processor
 
     ye_bash4_target_escape $__target 1
 
@@ -581,10 +627,12 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
 
     set | grep -Pzo "(?s)^(\s*)ye_bash4_processor *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_runner *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_input_parser *\(\).*?{.*?^\1}" >> $__target
+    echo >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_run *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
 
-    echo 'ye_bash4_runner "$@"' >> $__target
+    echo 'ye_bash4_run "$@"' >> $__target
 
     echo "Done"
   }
@@ -603,44 +651,23 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     local __source="$1"
     local __target="$2"
 
-    if [ ! -f "$__source" ]; then
-      >&2 echo "The source file doesn't exist: $__source"
-      exit 2;
-    fi
-    if [ ! -r "$__source" ]; then
-      >&2 echo "The source file is not readable: $__source"
-      exit 2;
-    fi
-    __source=$(cd `dirname "$__source"` && pwd)/`basename "$__source"`
-    if [ "$YE_BASH4_SCRIPT_FILE" == "$__source" ]; then
-      >&2 echo "Are you really that crazy, trying to build a file from the framework source: $__source"
-      exit 2;
-    fi
-    if [ -f "$__target" ]; then
-      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
-      if [ "$YE_BASH4_SCRIPT_FILE" == "$__target" ]; then
-        >&2 echo "Are you really that crazy, trying to overwrite the framework: $__target"
-        exit 2;
-      fi
-      ye_bash4_confirm "Are your sure you want to overwrite the file: $__target?" $__auto_confirm
-      if [ "$?" -ne 0 ]; then
-        exit 0;
-      fi
-    else
-      touch "$__target" > /dev/null 2>&1
-      if [ "$?" -ne 0 ]; then
-        >&2 echo "The target file can't be created: $__target"
-        exit 2;
-      fi
-      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
-    fi
-
-     ye_bash4_target_build   $__target $__source
-#    ye_bash4_target_restore $__target $__source
-#    ye_bash4_target_purge   $__target
+     ye_bash4_target_build $__target $__source
+#    ye_bash4_target_reset $__target $__source
+#    ye_bash4_target_purge $__target
 
   }
 
-  ye_bash4_make "$@"
+#  ye_bash4_make "$@"
+
+  YE_BASH4_AUTOCONFIRM=0
+  ye_bash4_register_F "YE_BASH4_AUTOCONFIRM" "-y" "Assume Yes to all queries and do not prompt"
+
+  ye_bash4_register_C "ye_bash4_target_build" "-b" "--build" "Build a standalone script based on"
+  ye_bash4_register_C "ye_bash4_target_reset" "-r" "--reset" "Action2 to be performed"
+  ye_bash4_register_C "ye_bash4_target_purge" "-p" "--purge" "Action2 to be performed"
+
+  YE_BASH4_DEFAULT="ye_bash4_target_build"
+
+  ye_bash4_run "$@"
 
 fi

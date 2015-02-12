@@ -10,5 +10,5 @@ Parameters:
   YB4_DEFAULT:Default value
   YB4_MISSING:Missing value
 Arguments:
-  ARG[0]:Argument1
-  ARG[1]:Argument Two
+  YE_BASH_ARGS[0]:Argument1
+  YE_BASH_ARGS[1]:Argument Two
