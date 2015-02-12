@@ -21,7 +21,7 @@ source "./ye-bash4.sh"
 # CODE HERE
 
 # Start the engine
-ye_bash4_run "$@"
+ye_bash4_interpreter "$@"
 ```
 Once that is done you can go on and write your script
 

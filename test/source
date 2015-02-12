@@ -40,10 +40,15 @@ yb4_action4() {
   echo "Performing action4"
 }
 
+ye_bash4_register_C "ye_bash4_stack" "-s" "--stack" "Stack dump"
+ye_bash4_stack() {
+  set | grep '^YE_BASH4\|^YB4_\|^ye_bash4\|^yb4_'
+}
+
 ye_bash4_version() {
   echo "Overridden"
   echo "$YE_BASH4_SCRIPT_NAME v$YE_BASH4_SCRIPT_VERSION"
   echo
 }
 
-ye_bash4_run "$@"
+ye_bash4_interpreter "$@"

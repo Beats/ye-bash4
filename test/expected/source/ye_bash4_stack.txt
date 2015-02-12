@@ -1,0 +1,30 @@
+YB4_DEFAULT='Default value'
+YB4_MISSING=
+YB4_NO=0
+YB4_ON=1
+YE_BASH4_BUILDER=0
+YE_BASH4_COMMAND=ye_bash4_stack
+YE_BASH4_COMPONENT_C=([0]="yb4_action1" [1]="yb4_action2" [2]="yb4_action3" [3]="yb4_action4" [4]="ye_bash4_stack" [5]="ye_bash4_version" [6]="ye_bash4_usage")
+YE_BASH4_COMPONENT_F=([0]="YB4_ON" [1]="YB4_NO" [2]="YE_BASH4_VERBOSE" [3]="YE_BASH4_DEBUG")
+YE_BASH4_COMPONENT_P=([0]="YB4_DEFAULT" [1]="YB4_MISSING")
+YE_BASH4_DEBUG=0
+YE_BASH4_DEFAULT=yb4_action4
+YE_BASH4_OPTION_USAGE=([YE_BASH4_DEBUG]="  --debug
+YE_BASH4_SCRIPT_FILE=/home/rtrk/workspace/ye-bash4/test/source
+YE_BASH4_SCRIPT_HOME=/home/rtrk/workspace/ye-bash4/test
+YE_BASH4_SCRIPT_NAME=source
+YE_BASH4_SCRIPT_VERSION=0.2
+YE_BASH4_TYPE_A=1
+YE_BASH4_TYPE_C=-2
+YE_BASH4_TYPE_F=-1
+YE_BASH4_TYPE_P=2
+YE_BASH4_VERBOSE=0
+YE_BASH4_VERSION=0.1
+yb4_action1 () 
+yb4_action2 () 
+yb4_action3 () 
+yb4_action4 () 
+ye_bash4_debug () 
+ye_bash4_stack () 
+ye_bash4_usage () 
+ye_bash4_version () 

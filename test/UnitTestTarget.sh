@@ -24,6 +24,14 @@ function var() {
   $SCRIPT_PATH --debug "$1" "$2" | grep $__var | xargs
 }
 
+function testStack() {
+  expected="$EXPECTED/ye_bash4_stack.txt"
+  actual="$ACTUAL/ye_bash4_stack.txt"
+
+  run --stack               > $actual
+  assertDiff "Stack differs." $expected $actual
+}
+
 function testVersion() {
   expected="$EXPECTED/ye_bash4_version.txt"
   actual="$ACTUAL/ye_bash4_version.txt"
@@ -110,11 +118,11 @@ function testAction3() {
   expected="$EXPECTED/yb4_action3.txt"
   actual="$ACTUAL/yb4_action3.txt"
 
-  run -c            > $actual
-  assertDiff "Explicit short output differs." $expected $actual
-
   run --action3     > $actual
   assertDiff "Explicit long  output differs." $expectedUsage $actual
+
+  run -c            > $actual
+  assertDiff "Explicit short output differs." $expected $actual
 }
 
 function testAction4() {

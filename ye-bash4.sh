@@ -1,7 +1,7 @@
 #!/bin/bash
-##
-# Beats BASH Framework
-##
+##############################
+#  Beats Ye-Bash4 Framework  #
+##############################
 
 [ ${BASH_VERSINFO[0]} -lt 4 ] && >&2 echo "Requires Bash v4" && exit 2
 
@@ -17,6 +17,7 @@ YE_BASH4_SCRIPT_VERSION="0.1"
 # Constants
 ##
 declare -r YE_BASH4_VERSION="0.1"
+
 declare -r YE_BASH4_TYPE_F=-1
 declare -r YE_BASH4_TYPE_C=-2
 declare -r YE_BASH4_TYPE_A=1
@@ -25,11 +26,11 @@ declare -r YE_BASH4_TYPE_P=2
 ##
 # Parameters
 ##
-declare -A YE_BASH4_OPTIONS
-declare -A YE_BASH4_OPTION_USAGE
-
 declare -A YE_BASH4_PARAMETER
 declare -A YE_BASH4_PARAMETER_TYPE
+
+declare -A YE_BASH4_OPTIONS
+declare -A YE_BASH4_OPTION_USAGE
 
 declare -a YE_BASH4_COMPONENT_C
 declare -a YE_BASH4_COMPONENT_F
@@ -144,83 +145,97 @@ ye_bash4_register() {
   unset -f ye_bash4_normalize_options
 }
 
-##
-# Flags
-##
-ye_bash4_register $YE_BASH4_TYPE_F "YE_BASH4_VERBOSE" "-v" "--verbose" "Explain what is being done"
-YE_BASH4_VERBOSE=0
-
-ye_bash4_register $YE_BASH4_TYPE_F "YE_BASH4_DEBUG" "" "--debug" "Display debugging information"
-YE_BASH4_DEBUG=0
-
-##
-# Commands
-##
-ye_bash4_register $YE_BASH4_TYPE_C "ye_bash4_version" "" "--version" "Display the script version"
-ye_bash4_is_function "ye_bash4_version"
-if [ $? -eq 0 ]; then
-  ye_bash4_version() {
-    echo "$YE_BASH4_SCRIPT_NAME v$YE_BASH4_SCRIPT_VERSION"
-    echo
-  }
-fi
-
-ye_bash4_register $YE_BASH4_TYPE_C "ye_bash4_usage" "-h" "--help" "Display this usage text"
-ye_bash4_is_function "ye_bash4_usage"
-if [ $? -eq 0 ]; then
-  ye_bash4_usage() {
-    local __name=
-    echo "Usage: $YE_BASH4_SCRIPT_NAME"
-    echo "Options:"
-    for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
-      echo "${YE_BASH4_OPTION_USAGE[$__name]}"
-    done
-    for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
-      echo "${YE_BASH4_OPTION_USAGE[$__name]}"
-    done
-    for __name in "${YE_BASH4_COMPONENT_C[@]}"; do
-      echo "${YE_BASH4_OPTION_USAGE[$__name]}"
-    done
-  }
-fi
-
-ye_bash4_is_function "ye_bash4_debug"
-if [ $? -eq 0 ]; then
-  ye_bash4_debug() {
-    local __i=0
-    local __name=
-    echo "$YE_BASH4_SCRIPT_NAME: $YE_BASH4_SCRIPT_VERSION"
-    echo "Beats Ye-Bash4: $YE_BASH4_VERSION"
-    echo "Command: $YE_BASH4_COMMAND"
-    echo "Flags:"
-    for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
-      echo -n "  $__name:"; eval echo \$$__name
-    done
-    echo "Parameters:"
-    for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
-      echo -n "  $__name:"; eval echo \$$__name
-    done
-    echo "Arguments:"
-    for __name in "${YE_BASH4_ARGS[@]}"; do
-      echo "  YE_BASH_ARGS[$__i]:$__name"; ((__i++));
-    done
-    if [ $YE_BASH4_VERBOSE -ne 0 ]; then
-      echo "Script:"
-      echo "  Name: $YE_BASH4_SCRIPT_NAME"
-      echo "  Home: $YE_BASH4_SCRIPT_HOME"
-      echo "  File: $YE_BASH4_SCRIPT_FILE"
-    fi;
-  }
-fi
-
 ###############################
 #  Ye-Bash4 Framework Engine  #
 ###############################
+
+
 
 ##
 # Processes the registered components
 ##
 ye_bash4_registration_processor() {
+
+  ye_bash4_register_defaults() {
+    ##
+    # Flags
+    ##
+    ye_bash4_register $YE_BASH4_TYPE_F "YE_BASH4_VERBOSE" "-v" "--verbose" "Explain what is being done"
+    YE_BASH4_VERBOSE=0
+
+    ye_bash4_register $YE_BASH4_TYPE_F "YE_BASH4_DEBUG" "" "--debug" "Display debugging information"
+    YE_BASH4_DEBUG=0
+
+    ##
+    # Commands
+    ##
+    ye_bash4_register $YE_BASH4_TYPE_C "ye_bash4_version" "" "--version" "Display the script version"
+    ye_bash4_is_function "ye_bash4_version"
+    if [ $? -eq 0 ]; then
+      ye_bash4_version() {
+        echo "$YE_BASH4_SCRIPT_NAME v$YE_BASH4_SCRIPT_VERSION"
+        echo
+      }
+    fi
+
+    ye_bash4_register $YE_BASH4_TYPE_C "ye_bash4_usage" "-h" "--help" "Display this usage text"
+    ye_bash4_is_function "ye_bash4_usage"
+    if [ $? -eq 0 ]; then
+      ye_bash4_usage() {
+        local __name=
+        echo "Usage: $YE_BASH4_SCRIPT_NAME"
+        echo "Options:"
+        for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
+          echo "${YE_BASH4_OPTION_USAGE[$__name]}"
+        done
+        for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
+          echo "${YE_BASH4_OPTION_USAGE[$__name]}"
+        done
+        for __name in "${YE_BASH4_COMPONENT_C[@]}"; do
+          echo "${YE_BASH4_OPTION_USAGE[$__name]}"
+        done
+      }
+    fi
+
+    ye_bash4_is_function "ye_bash4_debug"
+    if [ $? -eq 0 ]; then
+      ye_bash4_debug() {
+        local __i=0
+        local __name=
+        echo "$YE_BASH4_SCRIPT_NAME: $YE_BASH4_SCRIPT_VERSION"
+        echo "Beats Ye-Bash4: $YE_BASH4_VERSION"
+        echo "Command: $YE_BASH4_COMMAND"
+        echo "Flags:"
+        for __name in "${YE_BASH4_COMPONENT_F[@]}"; do
+          echo -n "  $__name:"; eval echo \$$__name
+        done
+        echo "Parameters:"
+        for __name in "${YE_BASH4_COMPONENT_P[@]}"; do
+          echo -n "  $__name:"; eval echo \$$__name
+        done
+        echo "Arguments:"
+        for __name in "${YE_BASH4_ARGS[@]}"; do
+          echo "  YE_BASH_ARGS[$__i]:$__name"; ((__i++));
+        done
+        if [ $YE_BASH4_VERBOSE -ne 0 ]; then
+          echo "Script:"
+          echo "  Name: $YE_BASH4_SCRIPT_NAME"
+          echo "  Home: $YE_BASH4_SCRIPT_HOME"
+          echo "  File: $YE_BASH4_SCRIPT_FILE"
+        fi;
+      }
+    fi
+
+    if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
+      unset -f ye_bash4_is_function ye_bash4_format_usage
+      unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
+    fi
+
+  }
+
+
+  ye_bash4_register_defaults
+  unset -f ye_bash4_register_defaults
 
   ye_bash4_component_builder() {
 
@@ -297,81 +312,11 @@ ye_bash4_registration_processor() {
 
   unset -f ye_bash4_component_builder
   unset -v YE_BASH4_OPTS_L YE_BASH4_OPTS_S
-
 }
 
 ##
-# Processes the script input
-##
-ye_bash4_processor() {
-  eval set -- "$YE_BASH4_GETOPT"
-
-  ye_bash4_action() {
-    if [ -z "$YE_BASH4_COMMAND" ]; then
-      YE_BASH4_COMMAND="$1"
-      return 1
-    else
-      YE_BASH4_COMMAND="ye_bash4_usage"
-      return 0
-    fi
-  }
-
-  ye_bash4_parameter() {
-    local __name=$1
-    if [ ! -z "$2" ]; then
-      eval "$__name=\"$2\""
-    fi
-    return 2
-  }
-
-  ye_bash4_flag() {
-    local __param=$1
-    eval $__param=$((1 - $__param))
-    return 1
-  }
-
-  ye_bash4_option_handler() {
-    local __option="$1"
-    local __return=0
-
-    local __pattern=${YE_BASH4_OPTIONS["$__option"]}
-    local __options=(${__pattern//\|/ })
-    local __component=${__options[0]}
-    local __handler=${__options[1]}
-
-    $__handler $__component "$2"
-    __return=$?
-    unset YE_BASH4_OPTIONS[$__option]
-
-    return $__return
-  }
-
-  local __loop=
-  while true; do
-    if [[ "$1" == "--" ]]; then
-      shift
-      break
-    fi
-    ye_bash4_option_handler "$1" "$2"
-    __loop=$?
-    if [ $__loop -gt 0 ]; then
-      shift $__loop
-    elif [ $__loop -eq 0 ]; then
-      break
-    fi
-  done
-
-  for __loop do
-    YE_BASH4_ARGS+=("$__loop")
-  done
-
-  unset -f ye_bash4_action ye_bash4_flag ye_bash4_parameter ye_bash4_option_handler
-
-  if [ -z "$YE_BASH4_COMMAND" ]; then
-    YE_BASH4_COMMAND="$YE_BASH4_DEFAULT"
-  fi
-}
-
+# Parses the user provided input
+#
 ye_bash4_input_parser() {
 
   YE_BASH4_GETOPT=`$YE_BASH4_GETOPT "$@"`
@@ -380,8 +325,77 @@ ye_bash4_input_parser() {
     exit 1
   fi
 
-  ye_bash4_processor
-  unset -f ye_bash4_processor
+  ye_bash4_input_processor() {
+    eval set -- "$YE_BASH4_GETOPT"
+
+    ye_bash4_action() {
+      if [ -z "$YE_BASH4_COMMAND" ]; then
+        YE_BASH4_COMMAND="$1"
+        return 1
+      else
+        YE_BASH4_COMMAND="ye_bash4_usage"
+        return 0
+      fi
+    }
+
+    ye_bash4_parameter() {
+      local __name=$1
+      if [ ! -z "$2" ]; then
+        eval "$__name=\"$2\""
+      fi
+      return 2
+    }
+
+    ye_bash4_flag() {
+      local __param=$1
+      eval $__param=$((1 - $__param))
+      return 1
+    }
+
+    ye_bash4_option_handler() {
+      local __option="$1"
+      local __return=0
+
+      local __pattern=${YE_BASH4_OPTIONS["$__option"]}
+      local __options=(${__pattern//\|/ })
+      local __component=${__options[0]}
+      local __handler=${__options[1]}
+
+      $__handler $__component "$2"
+      __return=$?
+      unset YE_BASH4_OPTIONS[$__option]
+
+      return $__return
+    }
+
+    local __loop=
+    while true; do
+      if [[ "$1" == "--" ]]; then
+        shift
+        break
+      fi
+      ye_bash4_option_handler "$1" "$2"
+      __loop=$?
+      if [ $__loop -gt 0 ]; then
+        shift $__loop
+      elif [ $__loop -eq 0 ]; then
+        break
+      fi
+    done
+
+    for __loop do
+      YE_BASH4_ARGS+=("$__loop")
+    done
+
+    unset -f ye_bash4_action ye_bash4_flag ye_bash4_parameter ye_bash4_option_handler
+
+    if [ -z "$YE_BASH4_COMMAND" ]; then
+      YE_BASH4_COMMAND="$YE_BASH4_DEFAULT"
+    fi
+  }
+
+  ye_bash4_input_processor
+  unset -f ye_bash4_input_processor
 
   if [ $YE_BASH4_DEBUG -ne 0 ]; then
     ye_bash4_debug
@@ -390,13 +404,9 @@ ye_bash4_input_parser() {
 }
 
 ##
-# Default execution loop
+# Interpreter
 ##
-ye_bash4_run() {
-  if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
-    unset -f ye_bash4_is_function ye_bash4_format_usage
-    unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
-  fi
+ye_bash4_interpreter() {
 
   local YE_BASH4_GETOPT
   ye_bash4_registration_processor
@@ -404,16 +414,22 @@ ye_bash4_run() {
     unset -f ye_bash4_registration_processor
   fi
 
+  unset -f ye_bash4_interpreter
+
+  ye_bash4_executor "$@"
+}
+
+ye_bash4_executor() {
+
   ye_bash4_input_parser "$@"
   unset -v YE_BASH4_GETOPT
 
   if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     unset -f ye_bash4_input_parser
     unset -v YE_BASH4_OPTIONS
+    unset -f ye_bash4_interpreter ye_bash4_executor
   fi
-  unset -f ye_bash4_run
 
-#  set | grep '^YE_BASH4\|^YB4_\|^ye_bash4\|^yb4_'
   $YE_BASH4_COMMAND
 
   ye_bash4_collect_garbage() {
@@ -443,15 +459,6 @@ ye_bash4_run() {
 
 if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
-  ye_bash4_is_overridden() {
-    local __command="$2"
-    local __count=`grep -Pc "^(\s*)(function)?(\s*)?$__command\s*(\(\))?\s*{" $1`
-    if [[ $__count -eq 0 ]]; then
-      YE_BASH4_DEFAULT_COMMANDS+=("$__command")
-    fi
-    return $__count
-  }
-
   ye_bash4_confirm() {
     if [ "${2:-0}" -ne 0 ]; then
       return 0
@@ -467,11 +474,6 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     esac
   }
 
-  ye_bash4_target_comment() {
-    local __target="$1"
-    sed -i "/$2/ s:^:#yb4#:" "$__target"
-  }
-
   ye_bash4_target_purge() {
     local __target="$1"
     sed -i '/^#yb4#/d' $__target
@@ -479,14 +481,23 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
   ye_bash4_target_escape() {
     local __target="$1"
+    local __step="$2"
 
-    if [ "$2" -eq 0 ]; then
-        ye_bash4_target_comment $__target '^\s*ye_bash4_run.*$'
+    ye_bash4_target_comment() {
+      local __target="$1"
+      sed -i "/$2/ s:^:#yb4#:" "$__target"
+    }
+
+    case $__step in
+      0)
+        ye_bash4_target_comment $__target '^\s*ye_bash4_interpreter.*$'
         ye_bash4_target_comment $__target '^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$'
-    else
+      ;;
+      1)
         ye_bash4_target_comment $__target '^\s*ye_bash4_register.*$'
         ye_bash4_target_comment $__target '^\s*YE_BASH4_SCRIPT_VERSION.*$'
-    fi
+      ;;
+    esac
   }
 
   ye_bash4_target_reset() {
@@ -545,19 +556,46 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
     ye_bash4_target_escape $__target 0
 
+    unset -v YE_BASH4_COMPONENT_C YE_BASH4_COMPONENT_F YE_BASH4_COMPONENT_P
+    unset -v YE_BASH4_PARAMETER YE_BASH4_PARAMETER_TYPE
+    unset -v YE_BASH4_OPTION_USAGE YE_BASH4_OPTIONS
+
+    declare -A YE_BASH4_OPTIONS
+    declare -A YE_BASH4_OPTION_USAGE
+
+    declare -A YE_BASH4_PARAMETER
+    declare -A YE_BASH4_PARAMETER_TYPE
+
+    declare -a YE_BASH4_COMPONENT_C
+    declare -a YE_BASH4_COMPONENT_F
+    declare -a YE_BASH4_COMPONENT_P
+
+    local YE_BASH4_GETOPT=
+
     source $__target
 
     YE_BASH4_SCRIPT_FILE=$__target
+    YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}
 
-    local YE_BASH4_GETOPT
+    AA=1
     ye_bash4_registration_processor
 
     ye_bash4_target_escape $__target 1
+
+    ye_bash4_is_overridden() {
+      local __command="$2"
+      local __count=`grep -Pc "^(\s*)(function)?(\s*)?$__command\s*(\(\))?\s*{" $1`
+      if [[ $__count -eq 0 ]]; then
+        YE_BASH4_DEFAULT_COMMANDS+=("$__command")
+      fi
+      return $__count
+    }
 
     declare -a YE_BASH4_DEFAULT_COMMANDS
     ye_bash4_is_overridden "$__target" 'ye_bash4_usage'
     ye_bash4_is_overridden "$__target" 'ye_bash4_debug'
     ye_bash4_is_overridden "$__target" 'ye_bash4_version'
+    unset -f ye_bash4_is_overridden
 
     echo >> $__target
     echo >> $__target
@@ -567,7 +605,7 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     echo "##############################" >> $__target
     echo "#yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
 
-    set | grep ^YE_BASH4_VERSION >> $__target
+    echo "YE_BASH4_BUILDER=0" >> $__target
     echo >> $__target
 
     echo 'YE_BASH4_SCRIPT_FILE=$(cd `dirname "$0"` && pwd)/`basename "$0"`' >> $__target
@@ -577,18 +615,26 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     echo >> $__target
 
     echo "##" >> $__target
+    echo "# Constants" >> $__target
+    echo "##" >> $__target
+    echo "declare -r YE_BASH4_VERSION='$YE_BASH4_VERSION'" >> $__target
+    echo >> $__target
+    echo "declare -r YE_BASH4_TYPE_F=$YE_BASH4_TYPE_F" >> $__target
+    echo "declare -r YE_BASH4_TYPE_C=$YE_BASH4_TYPE_C" >> $__target
+    echo "declare -r YE_BASH4_TYPE_A=$YE_BASH4_TYPE_A" >> $__target
+    echo "declare -r YE_BASH4_TYPE_P=$YE_BASH4_TYPE_P" >> $__target
+    echo >> $__target
+
+    echo "##" >> $__target
     echo "# Parameters" >> $__target
     echo "##" >> $__target
-
     echo "declare -A YE_BASH4_OPTIONS" >> $__target
     echo "declare -A YE_BASH4_OPTION_USAGE" >> $__target
     echo >> $__target
-
     echo "declare -A YE_BASH4_COMPONENT_C" >> $__target
     echo "declare -A YE_BASH4_COMPONENT_F" >> $__target
     echo "declare -A YE_BASH4_COMPONENT_P" >> $__target
     echo >> $__target
-
     echo "declare -a YE_BASH4_ARGS" >> $__target
     echo "YE_BASH4_COMMAND=" >> $__target
     echo >> $__target
@@ -601,7 +647,6 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     echo "##" >> $__target
     echo "# Flags" >> $__target
     echo "##" >> $__target
-
     echo "YE_BASH4_VERBOSE=0" >> $__target
     echo "YE_BASH4_DEBUG=0" >> $__target
     echo >> $__target
@@ -625,49 +670,27 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     echo "# Engine" >> $__target
     echo "##" >> $__target
 
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_processor *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_input_processor *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
     set | grep -Pzo "(?s)^(\s*)ye_bash4_input_parser *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
-    set | grep -Pzo "(?s)^(\s*)ye_bash4_run *\(\).*?{.*?^\1}" >> $__target
+    set | grep -Pzo "(?s)^(\s*)ye_bash4_executor *\(\).*?{.*?^\1}" >> $__target
     echo >> $__target
 
-    echo 'ye_bash4_run "$@"' >> $__target
+    echo 'ye_bash4_executor "$@"' >> $__target
 
     echo "Done"
   }
-
-  ye_bash4_make() {
-    local __switch=
-    local __auto_confirm=0
-    if [[ "$1" == -* ]]; then
-      __switch="$1"
-      shift
-    fi
-    case "$__switch" in
-      -f|-y) __auto_confirm=1 ;;
-    esac
-
-    local __source="$1"
-    local __target="$2"
-
-     ye_bash4_target_build $__target $__source
-#    ye_bash4_target_reset $__target $__source
-#    ye_bash4_target_purge $__target
-
-  }
-
-#  ye_bash4_make "$@"
 
   YE_BASH4_AUTOCONFIRM=0
   ye_bash4_register_F "YE_BASH4_AUTOCONFIRM" "-y" "Assume Yes to all queries and do not prompt"
 
   ye_bash4_register_C "ye_bash4_target_build" "-b" "--build" "Build a standalone script based on"
-  ye_bash4_register_C "ye_bash4_target_reset" "-r" "--reset" "Action2 to be performed"
-  ye_bash4_register_C "ye_bash4_target_purge" "-p" "--purge" "Action2 to be performed"
+  ye_bash4_register_C "ye_bash4_target_reset" "-r" "--reset" "Restore the built script to source"
+  ye_bash4_register_C "ye_bash4_target_purge" "-p" "--purge" "Purge all unnecessary code form a built script"
 
   YE_BASH4_DEFAULT="ye_bash4_target_build"
 
-  ye_bash4_run "$@"
+  ye_bash4_interpreter "$@"
 
 fi

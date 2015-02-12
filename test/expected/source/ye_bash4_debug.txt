@@ -2,10 +2,10 @@ source: 0.2
 Beats Ye-Bash4: 0.1
 Command: yb4_action1
 Flags:
-  YE_BASH4_VERBOSE:0
-  YE_BASH4_DEBUG:1
   YB4_ON:1
   YB4_NO:0
+  YE_BASH4_VERBOSE:0
+  YE_BASH4_DEBUG:1
 Parameters:
   YB4_DEFAULT:Default value
   YB4_MISSING:Missing value

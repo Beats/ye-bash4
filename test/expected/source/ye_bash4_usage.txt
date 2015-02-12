@@ -6,23 +6,17 @@ Options:
   -m, --missing
       Set a parameter that doesn't have a value
 
-  -v, --verbose
-      Explain what is being done
-
-  --debug
-      Display debugging information
-
   -f, --flag-no
       Turn a flag off (by default is on)
 
   -n, --flag-on
       Turn a flag on (by default is off)
 
-  --version
-      Display the script version
+  -v, --verbose
+      Explain what is being done
 
-  -h, --help
-      Display this usage text
+  --debug
+      Display debugging information
 
   -a, --action1
       Action1 to be performed
@@ -35,4 +29,13 @@ Options:
 
   --action4
       Action4 to be performed
+
+  -s, --stack
+      Stack dump
+
+  --version
+      Display the script version
+
+  -h, --help
+      Display this usage text
 
