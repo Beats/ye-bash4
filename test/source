@@ -6,6 +6,7 @@ source "${0%/*}/../ye-bash4.sh"
 
 # Script version
 YE_BASH4_SCRIPT_VERSION="0.2"
+YE_BASH4_DEFAULT="yb4_action4"
 
 ye_bash4_register_F "YB4_ON" "-f" "--flag-no" "Turn a flag off (by default is on)"
 YB4_ON=1

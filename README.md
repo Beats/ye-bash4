@@ -120,12 +120,36 @@ The all other parameters are optional and can be either:
 
 The framework provides with the following standard components:
 
-* Commands
-    * **Version** (--version) displays the current version of the script
+* **Commands**
+    * *Version* (--version) displays the current version of the script
         * override by creating a function called ```ye_bash4_version```
-    * **Usage**   (-h|--help)displays the scripts help text
+    * *Usage*   (-h|--help)displays the scripts help text
         * override by creating a function called ```ye_bash4_usage```
-* Flags
-    * **Debug**   (--debug) if set no command will be executed, instead all the script relevant data will be dumped so that the user can d-bug the script
+* **Flags**
+    * *Debug*   (--debug) if set no command will be executed, instead all the script relevant data will be dumped so that the user can d-bug the script
         * override by creating a function called ```ye_bash4_debug```
-    * **Verbose** (-v|--verbose) a simple flag that can be used for regulating the script output level
+    * *Verbose* (-v|--verbose) a simple flag that can be used for regulating the script output level
+
+* **Variables** - All of which can be used within any command code
+    * *Flags*
+        * YE_BASH4_DEBUG    is the ```--debug```   flag on *(0 is false)*
+        * YE_BASH4_VERBOSE  is the ```--verbose``` flag on *(0 is false)*
+    * *Parameters*
+        * YE_BASH4_COMMAND          the currently invoked command *(function name)*
+        * YE_BASH4_DEFAULT          the default           command *(function name)*
+        * YE_BASH4_SCRIPT_FILE      the executed script file absolute path
+        * YE_BASH4_SCRIPT_HOME      the executed script directory absolute path
+        * YE_BASH4_SCRIPT_NAME      the executed script name
+        * YE_BASH4_SCRIPT_VERSION   the executed script version
+        * YE_BASH4_COMPONENT_C      an array that contains all script registered commands
+        * YE_BASH4_COMPONENT_F      an array that contains all script registered flags
+        * YE_BASH4_COMPONENT_P      an array that contains all script registered parameters
+        * YE_BASH4_OPTION_USAGE     an dictionary that contains all registered component usage text
+        * YE_BASH4_BUILDER          is the framework in builder or interpreter mode
+    * *Constants*
+        * YE_BASH4_VERSION          the **Ye-Bash4** framework version
+        * *Option Types*
+            * YE_BASH4_TYPE_C       Command
+            * YE_BASH4_TYPE_F       Flag
+            * YE_BASH4_TYPE_P       Parameter
+            * YE_BASH4_TYPE_A       Argument  (not used at the moment but reserved for future use)

@@ -37,6 +37,7 @@ declare -a YE_BASH4_COMPONENT_P
 
 declare -a YE_BASH4_ARGS
 YE_BASH4_COMMAND=
+YE_BASH4_DEFAULT="ye_bash4_usage"
 
 ##
 # Utilities
@@ -383,7 +384,7 @@ ye_bash4_processor() {
   unset -f ye_bash4_action ye_bash4_flag ye_bash4_parameter ye_bash4_option_handler
 
   if [ -z "$YE_BASH4_COMMAND" ]; then
-    YE_BASH4_COMMAND="ye_bash4_usage"
+    YE_BASH4_COMMAND="$YE_BASH4_DEFAULT"
   fi
 }
 
@@ -452,59 +453,51 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     esac
   }
 
-  ye_bash4_make() {
-    local __switch=
-    local __auto_confirm=0
-    if [[ "$1" == -* ]]; then
-      __switch="$1"
-      shift
-    fi
-    case "$__switch" in
-      -f|-y) __auto_confirm=1 ;;
-    esac
+  ye_bash4_target_comment() {
+    local __target="$1"
+    sed -i "/$2/ s:^:#yb4#:" "$__target"
+  }
 
-    local __source="$1"
-    local __target="$2"
+  ye_bash4_target_purge() {
+    local __target="$1"
+    sed -i '/^#yb4#/d' $__target
+  }
 
-    if [ ! -f "$__source" ]; then
-      >&2 echo "The source file doesn't exist: $__source"
-      exit 2;
-    fi
-    if [ ! -r "$__source" ]; then
-      >&2 echo "The source file is not readable: $__source"
-      exit 2;
-    fi
-    __source=$(cd `dirname "$__source"` && pwd)/`basename "$__source"`
-    if [ "$YE_BASH4_SCRIPT_FILE" == "$__source" ]; then
-      >&2 echo "Are you really that crazy, trying to build a file from the framework source: $__source"
-      exit 2;
-    fi
-    if [ -f "$__target" ]; then
-      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
-      if [ "$YE_BASH4_SCRIPT_FILE" == "$__target" ]; then
-        >&2 echo "Are you really that crazy, trying to overwrite the framework: $__target"
-        exit 2;
-      fi
-      ye_bash4_confirm "Are your sure you want to overwrite the file: $__target?" $__auto_confirm
-      if [ "$?" -ne 0 ]; then
-        exit 0;
-      fi
+  ye_bash4_target_escape() {
+    local __target="$1"
+
+    if [ "$2" -eq 0 ]; then
+        ye_bash4_target_comment $__target '^\s*ye_bash4_run.*$'
+        ye_bash4_target_comment $__target '^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$'
     else
-      touch "$__target" > /dev/null 2>&1
-      if [ "$?" -ne 0 ]; then
-        >&2 echo "The target file can't be created: $__target"
-        exit 2;
-      fi
-      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+        ye_bash4_target_comment $__target '^\s*ye_bash4_register.*$'
+        ye_bash4_target_comment $__target '^\s*YE_BASH4_SCRIPT_VERSION.*$'
     fi
+  }
+
+  ye_bash4_target_restore() {
+    local __target="$1"
+    local __source="$2"
+
+    if [ ! -z "$__source" ]; then
+      cp $__target $__source
+      __target="$__source"
+    fi
+
+    sed -i '/^#yb4##yb4##yb4##yb4##yb4##yb4#$/,$d' $__target
+    sed -i 's/#yb4#//g' $__target
+    sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' $__target
+  }
+
+  ye_bash4_target_build() {
+    local __target="$1"
+    local __source="$2"
 
     echo "Building '$__target' script from '$__source'"
 
     cp $__source $__target
 
-    sed -i '/^\s*ye_bash4_run.*$/d' $__target
-    sed -i '/^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$/d' $__target
-#    sed -i -r 's/^\s*source\s*\(["\']?\)ye-bash4\.sh\1$//g' $__target
+    ye_bash4_target_escape $__target 0
 
     source $__target
 
@@ -513,8 +506,7 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     local YE_BASH4_GETOPT
     ye_bash4_parser
 
-    sed -i '/^\s*ye_bash4_register.*$/d' $__target
-    sed -i '/^\s*YE_BASH4_SCRIPT_VERSION.*$/d' $__target
+    ye_bash4_target_escape $__target 1
 
     declare -a YE_BASH4_DEFAULT_COMMANDS
     ye_bash4_is_overridden "$__target" 'ye_bash4_usage'
@@ -523,9 +515,11 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
 
     echo >> $__target
     echo >> $__target
-    echo "############################" >> $__target
-    echo "# Beats Ye-Bash4 Framework #" >> $__target
-    echo "############################" >> $__target
+    echo "#yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
+    echo "##############################" >> $__target
+    echo "#  Beats Ye-Bash4 Framework  #" >> $__target
+    echo "##############################" >> $__target
+    echo "#yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
 
     set | grep ^YE_BASH4_VERSION >> $__target
     echo >> $__target
@@ -593,6 +587,58 @@ if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
     echo 'ye_bash4_runner "$@"' >> $__target
 
     echo "Done"
+  }
+
+  ye_bash4_make() {
+    local __switch=
+    local __auto_confirm=0
+    if [[ "$1" == -* ]]; then
+      __switch="$1"
+      shift
+    fi
+    case "$__switch" in
+      -f|-y) __auto_confirm=1 ;;
+    esac
+
+    local __source="$1"
+    local __target="$2"
+
+    if [ ! -f "$__source" ]; then
+      >&2 echo "The source file doesn't exist: $__source"
+      exit 2;
+    fi
+    if [ ! -r "$__source" ]; then
+      >&2 echo "The source file is not readable: $__source"
+      exit 2;
+    fi
+    __source=$(cd `dirname "$__source"` && pwd)/`basename "$__source"`
+    if [ "$YE_BASH4_SCRIPT_FILE" == "$__source" ]; then
+      >&2 echo "Are you really that crazy, trying to build a file from the framework source: $__source"
+      exit 2;
+    fi
+    if [ -f "$__target" ]; then
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+      if [ "$YE_BASH4_SCRIPT_FILE" == "$__target" ]; then
+        >&2 echo "Are you really that crazy, trying to overwrite the framework: $__target"
+        exit 2;
+      fi
+      ye_bash4_confirm "Are your sure you want to overwrite the file: $__target?" $__auto_confirm
+      if [ "$?" -ne 0 ]; then
+        exit 0;
+      fi
+    else
+      touch "$__target" > /dev/null 2>&1
+      if [ "$?" -ne 0 ]; then
+        >&2 echo "The target file can't be created: $__target"
+        exit 2;
+      fi
+      __target=$(cd `dirname "$__target"` && pwd)/`basename "$__target"`
+    fi
+
+     ye_bash4_target_build   $__target $__source
+#    ye_bash4_target_restore $__target $__source
+#    ye_bash4_target_purge   $__target
+
   }
 
   ye_bash4_make "$@"

@@ -35,16 +35,13 @@ function testVersion() {
 function testUsage() {
   actual="$ACTUAL/ye_bash4_usage.txt"
 
-  run                       > $actual
-  assertDiff "Implicit       output differs." $expectedUsage $actual
-
   run -h                    > $actual
   assertDiff "Explicit short output differs." $expectedUsage $actual
 
   run --help                > $actual
   assertDiff "Explicit long  output differs." $expectedUsage $actual
 
-  run -n                    > $actual
+  run -w                    > $actual
   assertDiff "Invalid  short output differs." $expectedUsage $actual
 
   run --none                > $actual
@@ -61,7 +58,30 @@ function testUsage() {
 
   run --action1 -b          > $actual
   assertDiff "Multiple both  output differs." $expectedUsage $actual
+}
 
+function testDebug() {
+  actual="$ACTUAL/ye_bash4_debug.txt"
+
+  run --debug --action1 Argument1 -m "Missing value" "Argument Two"         > $actual
+  assertDiff "Explicit long output differs." $expectedDebug $actual
+
+  run --debug "Argument1" -a "Argument Two" -m"Missing value"               > $actual
+  assertDiff "Explicit long output differs." $expectedDebug $actual
+
+  run --debug Argument1 "Argument Two" --action1 --missing="Missing value"  > $actual
+  assertDiff "Explicit long output differs." $expectedDebug $actual
+
+  run --debug Argument1 -a --missing "Missing value" "Argument Two"         > $actual
+  assertDiff "Explicit long output differs." $expectedDebug $actual
+}
+
+function testDefault() {
+  expected="$EXPECTED/ye_bash4_default.txt"
+  actual="$ACTUAL/ye_bash4_default.txt"
+
+  run                       > $actual
+  assertDiff "Implicit       output differs." $expected $actual
 }
 
 function testAction1() {
@@ -106,22 +126,6 @@ function testAction4() {
 
   run --action4     > $actual
   assertDiff "Explicit long  output differs." $expected $actual
-}
-
-function testDebug() {
-  actual="$ACTUAL/ye_bash4_debug.txt"
-
-  run --debug --action1 Argument1 -m "Missing value" "Argument Two"         > $actual
-  assertDiff "Explicit long output differs." $expectedDebug $actual
-
-  run --debug "Argument1" -a "Argument Two" -m"Missing value"               > $actual
-  assertDiff "Explicit long output differs." $expectedDebug $actual
-
-  run --debug Argument1 "Argument Two" --action1 --missing="Missing value"  > $actual
-  assertDiff "Explicit long output differs." $expectedDebug $actual
-
-  run --debug Argument1 -a --missing "Missing value" "Argument Two"         > $actual
-  assertDiff "Explicit long output differs." $expectedDebug $actual
 }
 
 function testFlagON() {
