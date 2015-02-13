@@ -231,9 +231,7 @@ ye_bash4_registration_processor() {
       unset -f ye_bash4_is_function ye_bash4_format_usage
       unset -f ye_bash4_parse_register_args ye_bash4_register ye_bash4_register_C ye_bash4_register_F ye_bash4_register_P
     fi
-
   }
-
 
   ye_bash4_register_defaults
   unset -f ye_bash4_register_defaults
@@ -408,7 +406,6 @@ ye_bash4_input_parser() {
 # Interpreter
 ##
 ye_bash4_interpreter() {
-
   local YE_BASH4_GETOPT
   ye_bash4_registration_processor
   if [ "$YE_BASH4_BUILDER" -eq 0 ]; then
@@ -420,8 +417,10 @@ ye_bash4_interpreter() {
   ye_bash4_executor "$@"
 }
 
+##
+# Executor
+##
 ye_bash4_executor() {
-
   ye_bash4_input_parser "$@"
   unset -v YE_BASH4_GETOPT
 
@@ -455,7 +454,6 @@ ye_bash4_executor() {
   unset -v YE_BASH4_COMMAND YE_BASH4_ARGS YE_BASH4_DEBUG YE_BASH4_VERBOSE
   unset -v YE_BASH4_SCRIPT_FILE YE_BASH4_SCRIPT_NAME YE_BASH4_SCRIPT_HOME YE_BASH4_SCRIPT_VERSION
   unset -v YE_BASH4_COMPONENT_C YE_BASH4_COMPONENT_F YE_BASH4_COMPONENT_P
-
 }
 
 if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
@@ -475,30 +473,9 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     esac
   }
 
-  ye_bash4_target_purge() {
+  ye_bash4_target_comment() {
     local __target="$1"
-    sed -i '/^#yb4#/d' $__target
-  }
-
-  ye_bash4_target_escape() {
-    local __target="$1"
-    local __step="$2"
-
-    ye_bash4_target_comment() {
-      local __target="$1"
-      sed -i "/$2/ s:^:#yb4#:" "$__target"
-    }
-
-    case $__step in
-      0)
-        ye_bash4_target_comment $__target '^\s*ye_bash4_interpreter.*$'
-        ye_bash4_target_comment $__target '^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$'
-      ;;
-      1)
-        ye_bash4_target_comment $__target '^\s*ye_bash4_register.*$'
-        ye_bash4_target_comment $__target '^\s*YE_BASH4_SCRIPT_VERSION.*$'
-      ;;
-    esac
+    sed -i "/$2/ s:^:#yb4#:" "$__target"
   }
 
   ye_bash4_target_reset() {
@@ -555,6 +532,22 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
     cp $__source $__target
 
+    ye_bash4_target_escape() {
+      local __target="$1"
+      local __step="$2"
+
+      case $__step in
+        0)
+          ye_bash4_target_comment $__target '^\s*ye_bash4_interpreter.*$'
+          ye_bash4_target_comment $__target '^\s*\(source\|\.\)\s.*ye-bash4\.sh.*$'
+        ;;
+        1)
+          ye_bash4_target_comment $__target '^\s*ye_bash4_register.*$'
+          ye_bash4_target_comment $__target '^\s*YE_BASH4_SCRIPT_VERSION.*$'
+        ;;
+      esac
+    }
+
     ye_bash4_target_escape $__target 0
 
     unset -v YE_BASH4_COMPONENT_C YE_BASH4_COMPONENT_F YE_BASH4_COMPONENT_P
@@ -578,11 +571,13 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     YE_BASH4_SCRIPT_FILE=$__target
     YE_BASH4_SCRIPT_NAME=${YE_BASH4_SCRIPT_FILE##*/}
 
-    AA=1
     ye_bash4_registration_processor
 
     ye_bash4_target_escape $__target 1
 
+    unset -f ye_bash4_target_escape
+
+    declare -a YE_BASH4_DEFAULT_COMMANDS
     ye_bash4_is_overridden() {
       local __command="$2"
       local __count=`grep -Pc "^(\s*)(function)?(\s*)?$__command\s*(\(\))?\s*{" $1`
@@ -591,8 +586,6 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
       fi
       return $__count
     }
-
-    declare -a YE_BASH4_DEFAULT_COMMANDS
     ye_bash4_is_overridden "$__target" 'ye_bash4_usage'
     ye_bash4_is_overridden "$__target" 'ye_bash4_debug'
     ye_bash4_is_overridden "$__target" 'ye_bash4_version'
@@ -684,7 +677,13 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
     if [ "$YE_BASH4_CLEAN" -ne 0 ]; then
       ye_bash4_confirm "Are you sure you wan't to build a clean script. You wont be able to regenerate the original source?" $YE_BASH4_AUTOCONFIRM
       if [ "$?" -eq 0 ]; then
+        ye_bash4_target_purge() {
+          local __target="$1"
+          sed -i '/^#yb4#/d' $__target
+        }
+
         ye_bash4_target_purge $__target
+        unset -f ye_bash4_target_purge
       fi
     fi
 
