@@ -20,10 +20,25 @@ source "./ye-bash4.sh"
 
 # CODE HERE
 
-# Start the engine
 ye_bash4_interpreter "$@"
 ```
-Once that is done you can go on and write your script
+
+You can go on now and write and test your script until you are satisfied with the results.
+When finished you can create a standalone version of the script by executing:
+```bash
+./ye-bash4.sh <SOURCE_FILE> <TARGET_FILE>
+```
+
+If at any moment you need to go back and change or add a feature to your script simply execute:
+```bash
+./ye-bash4.sh -r <TARGET_FILE> <SOURCE_FILE>
+```
+
+Of course if you are sure you will never have to revert your standalone script to it's basic source code
+you can execute the previous command with a ```--clean``` flag
+```bash
+./ye-bash4.sh --clean <SOURCE_FILE> <TARGET_FILE>
+```
 
 ### Options
 

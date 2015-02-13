@@ -1,7 +1,8 @@
 #!/bin/bash
-##############################
-#  Beats Ye-Bash4 Framework  #
-##############################
+########################################
+#       Beats Ye-Bash4 Framework       #
+#   http://github.com/Beats/ye-bash4   #
+########################################
 
 [ ${BASH_VERSINFO[0]} -lt 4 ] && >&2 echo "Requires Bash v4" && exit 2
 
@@ -599,11 +600,12 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
     echo >> $__target
     echo >> $__target
-    echo "#yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
-    echo "##############################" >> $__target
-    echo "#  Beats Ye-Bash4 Framework  #" >> $__target
-    echo "##############################" >> $__target
-    echo "#yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
+    echo "#yb4##yb4##yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
+    echo "########################################" >> $__target
+    echo "#       Beats Ye-Bash4 Framework       #" >> $__target
+    echo "#   http://github.com/Beats/ye-bash4   #" >> $__target
+    echo "########################################" >> $__target
+    echo "#yb4##yb4##yb4##yb4##yb4##yb4##yb4##yb4#" >> $__target
 
     echo "YE_BASH4_BUILDER=0" >> $__target
     echo >> $__target
@@ -679,15 +681,24 @@ if [ "$YE_BASH4_BUILDER" -ne 0 ]; then
 
     echo 'ye_bash4_executor "$@"' >> $__target
 
+    if [ "$YE_BASH4_CLEAN" -ne 0 ]; then
+      ye_bash4_confirm "Are you sure you wan't to build a clean script. You wont be able to regenerate the original source?" $YE_BASH4_AUTOCONFIRM
+      if [ "$?" -eq 0 ]; then
+        ye_bash4_target_purge $__target
+      fi
+    fi
+
     echo "Done"
   }
 
   YE_BASH4_AUTOCONFIRM=0
   ye_bash4_register_F "YE_BASH4_AUTOCONFIRM" "-y" "Assume Yes to all queries and do not prompt"
 
-  ye_bash4_register_C "ye_bash4_target_build" "-b" "--build" "Build a standalone script based on"
+  YE_BASH4_CLEAN=0
+  ye_bash4_register_F "YE_BASH4_CLEAN" "--clean" "Build a clean (irreversible) script"
+
+  ye_bash4_register_C "ye_bash4_target_build" "-b" "--build" "Build a standalone script based on the given source"
   ye_bash4_register_C "ye_bash4_target_reset" "-r" "--reset" "Restore the built script to source"
-  ye_bash4_register_C "ye_bash4_target_purge" "-p" "--purge" "Purge all unnecessary code form a built script"
 
   YE_BASH4_DEFAULT="ye_bash4_target_build"
 
